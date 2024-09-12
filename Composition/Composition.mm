@@ -21,6 +21,7 @@
 #import "CompositionData.hpp"
 
 #import <Graphics/BSpline.hpp>
+#import <Graphics/CIELAB.hpp>
 
 #import <numeric>
 
@@ -72,11 +73,9 @@
             { 0 }
         } );
 
-        auto gradient = gradients.begin();
-
         //  - Knots
         //
-        data::append( formatter, gradient->knots, {
+        data::append( formatter, gradients[0].knots, {
             0.0f, 0.0f, 0.0f, 0.0f,
             0.45f,
             0.50f,
@@ -89,29 +88,37 @@
         const auto begin_color = simd::float4{ 8.5f,  5.5f, -8.5f, 1.0f };
         const auto end_color   = simd::float4{ 5.5f, -2.5f, -5.5f, 1.0f };
 
-        data::append( formatter, gradient->points, {
+        const auto points0 = data::append( formatter, gradients[0].points, {
             begin_color, begin_color,
             simd::float4{ 20.0f,  40.0f,  60.0f, 1.0f },
-            simd::float4{ 75.0f, -15.0f,  30.0f, 1.0f },
-            simd::float4{ 15.0f, -18.0f, -40.0f, 1.0f },
+            simd::float4{ 75.0f, -15.0f,  30.0f, 0.3f },
+            simd::float4{ 15.0f, -12.0f, -32.0f, 1.0f },
             end_color, end_color
         } );
 
-        //  - Reference the first gradient's data directly in the second
+        //  - Reference the first gradient's knots directly in the second, but change a weight
         //
-        gradient[1] = gradient[0];
+        gradients[1].knots = gradients[0].knots;
 
-        //  - Reference the first gradient's points in the third, but use different knots
+        auto points1 = data::append( formatter, gradients[1].points,
+                                     points0.begin(), points0.end() );
+        points1[3].w = 1.0f;
+
+        //  - Reference the second gradient's points in the third, but use different knots
         //
-        gradient[2].points = gradient[0].points;
+        gradients[2].points = gradients[1].points;
 
-        data::append( formatter, gradient[2].knots, {
+        data::append( formatter, gradients[2].knots, {
             0.0f, 0.0f, 0.0f, 0.0f,
             0.25f,
             0.30f,
             0.35f,
             1.0f, 1.0f, 1.0f, 1.0f
         } );
+
+        // • Background color
+        //
+        _backgroundColor = cielab::convert_to_linear_display_P3({ 27.0f, -1.0f, -2.0f });
 
         // • Aspect ratio
         //

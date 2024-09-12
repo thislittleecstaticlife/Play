@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E11B8D0E2C93A3920056CAAA /* MTLClearColor+Play.swift in Sources */ = {isa = PBXBuildFile; fileRef = E11B8D0D2C93A3920056CAAA /* MTLClearColor+Play.swift */; };
 		E1C33BF52C90E4BF00F2370E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C33BF42C90E4BF00F2370E /* AppDelegate.swift */; };
 		E1C33BF92C90E4C000F2370E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E1C33BF82C90E4C000F2370E /* Assets.xcassets */; };
 		E1C33C042C90E5CF00F2370E /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C33C032C90E5CF00F2370E /* main.swift */; };
@@ -30,6 +31,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		E11B8D0D2C93A3920056CAAA /* MTLClearColor+Play.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MTLClearColor+Play.swift"; sourceTree = "<group>"; };
 		E1C33BF12C90E4BF00F2370E /* Play.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Play.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E1C33BF42C90E4BF00F2370E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		E1C33BF82C90E4C000F2370E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -125,6 +127,7 @@
 			children = (
 				E1C33C102C90E86A00F2370E /* CAMetalLayer+Play.swift */,
 				E1C33C122C90E86A00F2370E /* CGContext+Play.swift */,
+				E11B8D0D2C93A3920056CAAA /* MTLClearColor+Play.swift */,
 				E1C33C112C90E86A00F2370E /* MTLCommandBuffer+Play.swift */,
 				E1C33C0E2C90E86900F2370E /* MTLComputePipelineState+Play.swift */,
 				E1C33C0D2C90E86900F2370E /* MTLDevice+Play.swift */,
@@ -249,6 +252,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E1C33C172C90E86A00F2370E /* MTLTextureDescriptor+Play.swift in Sources */,
+				E11B8D0E2C93A3920056CAAA /* MTLClearColor+Play.swift in Sources */,
 				E1C33C142C90E86A00F2370E /* MTLLibrary+Play.swift in Sources */,
 				E1C33C272C90EB1E00F2370E /* ContentView.swift in Sources */,
 				E1C33C242C90E97900F2370E /* Renderer.swift in Sources */,

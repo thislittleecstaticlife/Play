@@ -1,5 +1,5 @@
 //
-//  Composition.h
+//  MTLClearColor+Play.swift
 //
 //  Copyright © 2024 Robert Guequierre
 //
@@ -17,28 +17,20 @@
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 //
 
-#import <Foundation/Foundation.h>
-#import <Metal/Metal.h>
-#import <simd/simd.h>
+import Metal
+import simd
 
 //===------------------------------------------------------------------------===
-//
-#pragma mark - Composition Declaration
-//
+// MARK: - extension MTLClearColor
 //===------------------------------------------------------------------------===
 
-@interface Composition : NSObject
+extension MTLClearColor {
 
-// • Initialization
-//
-- (nullable instancetype)initWithDevice:(nonnull id<MTLDevice>)device;
+    init(color: SIMD3<Float>) {
 
-// • Properties
-//
-@property (nonnull, nonatomic, readonly) id<MTLBuffer> gradientBuffer;
-@property (nonatomic, readonly) simd_float3 backgroundColor;
-@property (nonatomic, readonly) NSInteger gradientCount;
-@property (nonatomic, readonly) NSInteger maxIntervalCount;
-@property (nonatomic, readonly) simd_uint2 aspectRatio;
-
-@end
+        self.init( red:   Double(color.x),
+                   green: Double(color.y),
+                   blue:  Double(color.z),
+                   alpha: 1.0 )
+    }
+}

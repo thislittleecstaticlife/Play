@@ -77,7 +77,7 @@ class Renderer {
     @discardableResult
     func draw(to outputTexture: MTLTexture, with commandBuffer: MTLCommandBuffer) -> Bool {
 
-        let clearColor = MTLClearColorMake(0.03, 0.03, 0.034, 1.0)
+        let clearColor = MTLClearColor(color: composition.backgroundColor)
 
         guard let renderEncoder = commandBuffer.makeRenderCommandEncoder(to: outputTexture,
                                                                          clearColor: clearColor) else {
