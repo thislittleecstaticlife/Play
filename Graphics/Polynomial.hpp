@@ -1,5 +1,5 @@
 //
-//  Composition.h
+//  Polynomial.hpp
 //
 //  Copyright © 2024 Robert Guequierre
 //
@@ -17,26 +17,34 @@
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 //
 
-#import <Foundation/Foundation.h>
-#import <Metal/Metal.h>
-#import <simd/simd.h>
+#pragma once
+
+#include <simd/simd.h>
 
 //===------------------------------------------------------------------------===
-//
-#pragma mark - Composition Declaration
-//
+// Polynomial multiplication
 //===------------------------------------------------------------------------===
 
-@interface Composition : NSObject
+namespace polynomial
+{
 
-// • Initialization
-//
-- (nullable instancetype)initWithDevice:(nonnull id<MTLDevice>)device;
+inline simd::float3 multiply(simd::float2 lhs, simd::float2 rhs)
+{
+    const auto f0 = lhs[0]*rhs[0];
+    const auto f1 = lhs[0]*rhs[1] + lhs[1]*rhs[0];
+    const auto f2 =                 lhs[1]*rhs[1];
 
-// • Properties
-//
-@property (nonnull, nonatomic, readonly) id<MTLBuffer> gradientBuffer;
-@property (nonatomic, readonly) NSInteger maxIntervalCount;
-@property (nonatomic, readonly) simd_uint2 aspectRatio;
+    return { f0, f1, f2 };
+}
 
-@end
+inline simd::float4 multiply(simd::float2 lhs, simd::float3 rhs)
+{
+    const auto f0 = lhs[0]*rhs[0];
+    const auto f1 = lhs[0]*rhs[1] + lhs[1]*rhs[0];
+    const auto f2 = lhs[0]*rhs[2] + lhs[1]*rhs[1];
+    const auto f3 =                 lhs[1]*rhs[2];
+
+    return { f0, f1, f2, f3 };
+}
+
+} // namespace polynomial

@@ -1,5 +1,5 @@
 //
-//  Pattern.hpp
+//  Presentation.hpp
 //
 //  Copyright © 2024 Robert Guequierre
 //
@@ -20,22 +20,23 @@
 #pragma once
 
 #include <Graphics/Geometry.hpp>
+#include <Data/Array.hpp>
 #include <simd/simd.h>
 
 //===------------------------------------------------------------------------===
 //
-// • Pattern
+// • Gradient
 //
 //===------------------------------------------------------------------------===
 
-struct Pattern
+struct Gradient
 {
-    simd::uint2         grid_size;
-    geometry::Region    base_region;
-    simd::int2          offset;
-    uint32_t            count;
+    geometry::Region                output_region;
+    simd::uint2                     grid_size;
+    data::ArrayRef<float>           knots;
+    data::ArrayRef<simd::float4>    points;
 };
 
 #if !defined ( __METAL_VERSION__ )
-static_assert( data::is_trivial_layout<Pattern>(), "Unexpected layout" );
+static_assert( data::is_trivial_layout<Gradient>(), "Unexpected layout" );
 #endif

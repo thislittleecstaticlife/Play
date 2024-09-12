@@ -32,7 +32,7 @@ class Renderer {
     //===--------------------------------------------------------------------===
     // MARK: • Properties (Read-Only)
     //
-    let pixelFormat = MTLPixelFormat.bgra8Unorm
+    let pixelFormat = MTLPixelFormat.rgba16Float
     let colorspace  : CGColorSpace
     let device      : MTLDevice
     let composition : Composition
@@ -40,7 +40,7 @@ class Renderer {
     //===--------------------------------------------------------------------===
     // MARK: • Properties (Private)
     //
-    private let renderPipelineState : MTLRenderPipelineState
+    private let gradientPipelineState : MTLRenderPipelineState
 
     //===--------------------------------------------------------------------===
     // MARK: • Initilization
@@ -49,25 +49,26 @@ class Renderer {
 
         // • Color space
         //
-        guard let colorspace = CGColorSpace(name: CGColorSpace.sRGB) else {
+        guard let colorspace = CGColorSpace(name: CGColorSpace.linearDisplayP3) else {
             return nil
         }
 
-        // • Render pipeline
+        // • Gradient pipeline
         //
-        guard let renderPipelineState =
-                library.makeRenderPipelineState(vertexFunctionName: "pattern_vertex",
-                                                fragmentFunctionName: "white_fragment",
-                                                pixelFormat: self.pixelFormat) else {
+        guard let gradientPipelineState =
+                library.makeRenderPipelineState( objectFunctionName: "vertical_gradient_object",
+                                                 meshFunctionName: "gradient_mesh",
+                                                 fragmentFunctionName: "gradient_fragment",
+                                                 pixelFormat: self.pixelFormat ) else {
             return nil
         }
 
         // • Assign properties
         //
-        self.colorspace          = colorspace
-        self.device              = library.device
-        self.composition         = composition
-        self.renderPipelineState = renderPipelineState
+        self.colorspace            = colorspace
+        self.device                = library.device
+        self.composition           = composition
+        self.gradientPipelineState = gradientPipelineState
     }
 
     //===--------------------------------------------------------------------===
@@ -76,18 +77,22 @@ class Renderer {
     @discardableResult
     func draw(to outputTexture: MTLTexture, with commandBuffer: MTLCommandBuffer) -> Bool {
 
-        let clearColor = MTLClearColorMake(0.0, 0.0, 0.0, 1.0)
+        let clearColor = MTLClearColorMake(0.03, 0.03, 0.034, 1.0)
 
         guard let renderEncoder = commandBuffer.makeRenderCommandEncoder(to: outputTexture,
                                                                          clearColor: clearColor) else {
             return false
         }
 
-        renderEncoder.setRenderPipelineState(renderPipelineState)
-        renderEncoder.setVertexBuffer(composition.patternBuffer, offset: 0, index: 0)
+        renderEncoder.setRenderPipelineState(gradientPipelineState)
+        renderEncoder.setObjectBuffer(composition.gradientBuffer, offset: 0, index: 0)
 
-        renderEncoder.drawPrimitives( type: .triangleStrip, vertexStart: 0, vertexCount: 4,
-                                      instanceCount: composition.instanceCount )
+        let threadsPerObjectThreadgroup = MTLSizeMake(gradientPipelineState.objectThreadExecutionWidth, 1, 1)
+        let threadsPerMeshThreadgroup   = MTLSizeMake(gradientPipelineState.meshThreadExecutionWidth, 1, 1)
+
+        renderEncoder.drawMeshThreads( MTLSizeMake(1, composition.maxIntervalCount, 1),
+                                       threadsPerObjectThreadgroup: threadsPerObjectThreadgroup,
+                                       threadsPerMeshThreadgroup: threadsPerMeshThreadgroup )
         renderEncoder.endEncoding()
 
         return true

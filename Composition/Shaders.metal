@@ -17,44 +17,157 @@
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 //
 
-#include <Composition/Pattern.hpp>
+#include <Composition/Presentation.hpp>
+#include <Graphics/BSpline.hpp>
+#include <Graphics/CIELAB.hpp>
 #include <metal_stdlib>
 
 using namespace geometry;
 using namespace metal;
 
 //===------------------------------------------------------------------------===
-// • white_fragment
+// • Gradient rendering
 //===------------------------------------------------------------------------===
 
-[[fragment]] half4 white_fragment(void)
+struct GradientVertex
 {
-    return { 1.0h, 1.0h, 1.0h, 1.0h };
+    float4 position [[ position ]];
+    float  u;
+};
+
+using GradientMesh = mesh<GradientVertex, nurbs::Interval, 6, 2, topology::triangle>;
+
+struct GradientFragment
+{
+    GradientVertex  v;
+    nurbs::Interval interval;
+};
+
+struct GradientPayload
+{
+    GradientVertex  vertices[6];
+    nurbs::Interval interval;
+};
+
+[[fragment]] half4 gradient_fragment(GradientFragment input [[ stage_in ]] )
+{
+    const auto lab  = nurbs::calculate_value(input.interval, input.v.u);
+    const auto lrgb = cielab::convert_to_linear_display_P3(lab);
+
+    if ( all(lrgb == clamp(lrgb, float3(0.0f), float3(1.0f))) )
+    {
+        return half4( half3(lrgb), 1.0h );
+    }
+    else
+    {
+        return { 0.5h, 0.5h, 0.5h, 1.0h };
+    }
 }
 
-//===------------------------------------------------------------------------===
-// • pattern_vertex
-//===------------------------------------------------------------------------===
-
-[[vertex]] float4 pattern_vertex(constant Pattern& pattern [[ buffer(0)   ]],
-                                 ushort            vid     [[ vertex_id   ]],
-                                 ushort            iid     [[ instance_id ]])
+[[mesh]] void gradient_mesh(GradientMesh                       output,
+                            const object_data GradientPayload& payload [[ payload ]],
+                            ushort                             tid     [[ thread_index_in_threadgroup ]])
 {
-    // • Clockwise quad triangle strip
-    //
-    //  1   3
-    //  | \ |
-    //  0   2
-    //
-    const auto offset  = pattern.offset * iid;
-    const auto region  = pattern.base_region + offset;
-    const auto rect    = geometry::make_device_rect(region, pattern.grid_size);
+    output.set_primitive_count(2);
 
-    const auto is_left = 0 != (vid & 0b10);
-    const auto nx      = is_left ? rect.left : rect.right;
+    if (tid < 6)
+    {
+        output.set_vertex(tid, payload.vertices[tid]);
+        output.set_index(tid, tid);
+    }
 
-    const auto is_top  = 0 != (vid & 0b01);
-    const auto ny      = is_top ? rect.top : rect.bottom;
+    if (tid < 2)
+    {
+        output.set_primitive(tid, payload.interval);
+    }
+}
 
-    return { nx, ny, 0.0f, 1.0f };
+[[object]] void horizontal_gradient_object(object_data GradientPayload& payload   [[ payload ]],
+                                           mesh_grid_properties         mesh_grid,
+                                           constant Gradient*           gradient  [[ buffer(0) ]],
+                                           ushort2                      tid       [[ thread_position_in_grid ]])
+{
+    if ( 0 < tid.x ) {
+        //  - only use the first thread
+        return;
+    }
+
+    const auto i = tid.y;
+
+    if ( bspline::max_intervals(gradient->knots.count) <= i ) {
+        return;
+    }
+
+    constant auto* k = data::cdata(gradient, gradient->knots);
+
+    if ( k[i+3] >= k[i+4] ) {
+        return;
+    }
+
+    const    auto  F     = bspline::calculate_interval_coefficients(k, i);
+    constant auto* P     = data::cdata(gradient, gradient->points);
+    const    auto  frame = geometry::make_device_rect(gradient->output_region, gradient->grid_size);
+    const    auto  x0    = mix(frame.left, frame.right, k[i+3]);
+    const    auto  x1    = mix(frame.left, frame.right, k[i+4]);
+    const    auto  du    = k[i+4] - k[i+3];
+
+    payload.interval = {
+        .f0 = F.f0,   .f1 = F.f1,   .f2 = F.f2,   .f3 = F.f3,
+        .P0 = P[i+0], .P1 = P[i+1], .P2 = P[i+2], .P3 = P[i+3]
+    };
+
+    payload.vertices[0] = { .position = { x0, frame.bottom, 0.0f, 1.0f }, .u = 0.0f };
+    payload.vertices[1] = { .position = { x0, frame.top,    0.0f, 1.0f }, .u = 0.0f };
+    payload.vertices[2] = { .position = { x1, frame.bottom, 0.0f, 1.0f }, .u = du   };
+
+    payload.vertices[3] = { .position = { x1, frame.bottom, 0.0f, 1.0f }, .u = du   };
+    payload.vertices[4] = { .position = { x0, frame.top,    0.0f, 1.0f }, .u = 0.0f };
+    payload.vertices[5] = { .position = { x1, frame.top,    0.0f, 1.0f }, .u = du   };
+
+    mesh_grid.set_threadgroups_per_grid({ 1, 1, 1});
+}
+
+[[object]] void vertical_gradient_object(object_data GradientPayload& payload   [[ payload ]],
+                                         mesh_grid_properties         mesh_grid,
+                                         constant Gradient*           gradient  [[ buffer(0) ]],
+                                         ushort2                      tid       [[ thread_position_in_grid ]])
+{
+    if ( 0 < tid.x ) {
+        //  - only use the first thread
+        return;
+    }
+
+    const auto i = tid.y;
+
+    if ( bspline::max_intervals(gradient->knots.count) <= i ) {
+        return;
+    }
+
+    constant auto* k = data::cdata(gradient, gradient->knots);
+
+    if ( k[i+3] >= k[i+4] ) {
+        return;
+    }
+
+    const    auto  F     = bspline::calculate_interval_coefficients(k, i);
+    constant auto* P     = data::cdata(gradient, gradient->points);
+    const    auto  frame = geometry::make_device_rect(gradient->output_region, gradient->grid_size);
+    const    auto  y0    = mix(frame.bottom, frame.top, k[i+3]);
+    const    auto  y1    = mix(frame.bottom, frame.top, k[i+4]);
+    const    auto  du    = k[i+4] - k[i+3];
+
+    payload.interval = {
+        .f0 = F.f0,   .f1 = F.f1,   .f2 = F.f2,   .f3 = F.f3,
+        .P0 = P[i+0], .P1 = P[i+1], .P2 = P[i+2], .P3 = P[i+3]
+    };
+
+    payload.vertices[0] = { .position = { frame.left,  y0, 0.0f, 1.0f }, .u = 0.0f };
+    payload.vertices[1] = { .position = { frame.left,  y1, 0.0f, 1.0f }, .u = du   };
+    payload.vertices[2] = { .position = { frame.right, y0, 0.0f, 1.0f }, .u = 0.0f };
+
+    payload.vertices[3] = { .position = { frame.right, y0, 0.0f, 1.0f }, .u = 0.0f };
+    payload.vertices[4] = { .position = { frame.left,  y1, 0.0f, 1.0f }, .u = du   };
+    payload.vertices[5] = { .position = { frame.right, y1, 0.0f, 1.0f }, .u = du   };
+
+    mesh_grid.set_threadgroups_per_grid({ 1, 1, 1});
 }

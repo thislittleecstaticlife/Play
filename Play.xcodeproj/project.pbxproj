@@ -52,11 +52,16 @@
 		E1C33C2A2C90EF0000F2370E /* Layout.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Layout.hpp; sourceTree = "<group>"; };
 		E1C33C2B2C90EF0700F2370E /* Geometry.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Geometry.hpp; sourceTree = "<group>"; };
 		E1C33C2C2C90EF7800F2370E /* Play-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Play-Bridging-Header.h"; sourceTree = "<group>"; };
-		E1C33C2D2C9205E000F2370E /* Pattern.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Pattern.hpp; sourceTree = "<group>"; };
+		E1C33C2D2C9205E000F2370E /* Presentation.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Presentation.hpp; sourceTree = "<group>"; };
 		E1C33C2E2C9222E100F2370E /* Composition.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Composition.h; sourceTree = "<group>"; };
 		E1C33C2F2C9222E100F2370E /* Composition.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Composition.mm; sourceTree = "<group>"; };
 		E1C33C312C933E8400F2370E /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		E1C33C322C933E8400F2370E /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
+		E1C33C352C937E7D00F2370E /* Array.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Array.hpp; sourceTree = "<group>"; };
+		E1C33C362C937E7D00F2370E /* Formatter.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Formatter.hpp; sourceTree = "<group>"; };
+		E1C33C372C937F1C00F2370E /* BSpline.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = BSpline.hpp; sourceTree = "<group>"; };
+		E1C33C382C937F1C00F2370E /* CIELAB.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = CIELAB.hpp; sourceTree = "<group>"; };
+		E1C33C392C937F1C00F2370E /* Polynomial.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Polynomial.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -142,7 +147,7 @@
 		E1C33C222C90E95B00F2370E /* Composition */ = {
 			isa = PBXGroup;
 			children = (
-				E1C33C2D2C9205E000F2370E /* Pattern.hpp */,
+				E1C33C2D2C9205E000F2370E /* Presentation.hpp */,
 				E1C33C2E2C9222E100F2370E /* Composition.h */,
 				E1C33C2F2C9222E100F2370E /* Composition.mm */,
 				E1C33C232C90E97900F2370E /* Renderer.swift */,
@@ -155,6 +160,8 @@
 			isa = PBXGroup;
 			children = (
 				E1C33C2A2C90EF0000F2370E /* Layout.hpp */,
+				E1C33C362C937E7D00F2370E /* Formatter.hpp */,
+				E1C33C352C937E7D00F2370E /* Array.hpp */,
 			);
 			path = Data;
 			sourceTree = "<group>";
@@ -162,6 +169,9 @@
 		E1C33C292C90EEC600F2370E /* Graphics */ = {
 			isa = PBXGroup;
 			children = (
+				E1C33C382C937F1C00F2370E /* CIELAB.hpp */,
+				E1C33C372C937F1C00F2370E /* BSpline.hpp */,
+				E1C33C392C937F1C00F2370E /* Polynomial.hpp */,
 				E1C33C2B2C90EF0700F2370E /* Geometry.hpp */,
 			);
 			path = Graphics;
