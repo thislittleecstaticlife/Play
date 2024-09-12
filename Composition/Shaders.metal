@@ -17,7 +17,7 @@
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 //
 
-#include <Composition/Presentation.hpp>
+#include <Composition/CompositionData.hpp>
 #include <Graphics/BSpline.hpp>
 #include <Graphics/CIELAB.hpp>
 #include <metal_stdlib>
@@ -82,34 +82,43 @@ struct GradientPayload
     }
 }
 
-[[object]] void horizontal_gradient_object(object_data GradientPayload& payload   [[ payload ]],
+[[object]] void horizontal_gradient_object(object_data GradientPayload& payload     [[ payload ]],
                                            mesh_grid_properties         mesh_grid,
-                                           constant Gradient*           gradient  [[ buffer(0) ]],
-                                           ushort2                      tid       [[ thread_position_in_grid ]])
+                                           constant CompositionData*    composition [[ buffer(0) ]],
+                                           ushort3                      tid         [[ thread_position_in_grid ]])
 {
     if ( 0 < tid.x ) {
         //  - only use the first thread
         return;
     }
 
-    const auto i = tid.y;
+    const auto gradient_index = tid.y;
+
+    if ( composition->gradients.count <= gradient_index ) {
+        return;
+    }
+
+    constant auto* gradient = data::cdata(composition, composition->gradients) + gradient_index;
+
+    const auto i = tid.z;
 
     if ( bspline::max_intervals(gradient->knots.count) <= i ) {
         return;
     }
 
-    constant auto* k = data::cdata(gradient, gradient->knots);
+    constant auto* k = data::cdata(composition, gradient->knots);
 
     if ( k[i+3] >= k[i+4] ) {
         return;
     }
 
-    const    auto  F     = bspline::calculate_interval_coefficients(k, i);
-    constant auto* P     = data::cdata(gradient, gradient->points);
-    const    auto  frame = geometry::make_device_rect(gradient->output_region, gradient->grid_size);
-    const    auto  x0    = mix(frame.left, frame.right, k[i+3]);
-    const    auto  x1    = mix(frame.left, frame.right, k[i+4]);
-    const    auto  du    = k[i+4] - k[i+3];
+    const    auto  F      = bspline::calculate_interval_coefficients(k, i);
+    constant auto* P      = data::cdata(composition, gradient->points);
+    const    auto  region = composition->base_region + composition->offset*gradient_index;
+    const    auto  frame  = geometry::make_device_rect(region, composition->grid_size);
+    const    auto  x0     = mix(frame.left, frame.right, k[i+3]);
+    const    auto  x1     = mix(frame.left, frame.right, k[i+4]);
+    const    auto  du     = k[i+4] - k[i+3];
 
     payload.interval = {
         .f0 = F.f0,   .f1 = F.f1,   .f2 = F.f2,   .f3 = F.f3,
@@ -127,34 +136,43 @@ struct GradientPayload
     mesh_grid.set_threadgroups_per_grid({ 1, 1, 1});
 }
 
-[[object]] void vertical_gradient_object(object_data GradientPayload& payload   [[ payload ]],
+[[object]] void vertical_gradient_object(object_data GradientPayload& payload     [[ payload ]],
                                          mesh_grid_properties         mesh_grid,
-                                         constant Gradient*           gradient  [[ buffer(0) ]],
-                                         ushort2                      tid       [[ thread_position_in_grid ]])
+                                         constant CompositionData*    composition [[ buffer(0) ]],
+                                         ushort3                      tid         [[ thread_position_in_grid ]])
 {
     if ( 0 < tid.x ) {
         //  - only use the first thread
         return;
     }
 
-    const auto i = tid.y;
+    const auto gradient_index = tid.y;
+
+    if ( composition->gradients.count <= gradient_index ) {
+        return;
+    }
+
+    constant auto* gradient = data::cdata(composition, composition->gradients) + gradient_index;
+
+    const auto i = tid.z;
 
     if ( bspline::max_intervals(gradient->knots.count) <= i ) {
         return;
     }
 
-    constant auto* k = data::cdata(gradient, gradient->knots);
+    constant auto* k = data::cdata(composition, gradient->knots);
 
     if ( k[i+3] >= k[i+4] ) {
         return;
     }
 
-    const    auto  F     = bspline::calculate_interval_coefficients(k, i);
-    constant auto* P     = data::cdata(gradient, gradient->points);
-    const    auto  frame = geometry::make_device_rect(gradient->output_region, gradient->grid_size);
-    const    auto  y0    = mix(frame.bottom, frame.top, k[i+3]);
-    const    auto  y1    = mix(frame.bottom, frame.top, k[i+4]);
-    const    auto  du    = k[i+4] - k[i+3];
+    const    auto  F      = bspline::calculate_interval_coefficients(k, i);
+    constant auto* P      = data::cdata(composition, gradient->points);
+    const    auto  region = composition->base_region + composition->offset*gradient_index;
+    const    auto  frame  = geometry::make_device_rect(region, composition->grid_size);
+    const    auto  y0     = mix(frame.bottom, frame.top, k[i+3]);
+    const    auto  y1     = mix(frame.bottom, frame.top, k[i+4]);
+    const    auto  du     = k[i+4] - k[i+3];
 
     payload.interval = {
         .f0 = F.f0,   .f1 = F.f1,   .f2 = F.f2,   .f3 = F.f3,

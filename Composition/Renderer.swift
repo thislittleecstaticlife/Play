@@ -90,7 +90,7 @@ class Renderer {
         let threadsPerObjectThreadgroup = MTLSizeMake(gradientPipelineState.objectThreadExecutionWidth, 1, 1)
         let threadsPerMeshThreadgroup   = MTLSizeMake(gradientPipelineState.meshThreadExecutionWidth, 1, 1)
 
-        renderEncoder.drawMeshThreads( MTLSizeMake(1, composition.maxIntervalCount, 1),
+        renderEncoder.drawMeshThreads( MTLSizeMake(1, composition.gradientCount, composition.maxIntervalCount),
                                        threadsPerObjectThreadgroup: threadsPerObjectThreadgroup,
                                        threadsPerMeshThreadgroup: threadsPerMeshThreadgroup )
         renderEncoder.endEncoding()

@@ -18,7 +18,7 @@
 //
 
 #import "Composition.h"
-#import "Presentation.hpp"
+#import "CompositionData.hpp"
 
 #import <Graphics/BSpline.hpp>
 
@@ -32,7 +32,7 @@
 
 @implementation Composition
 {
-    const Gradient* gradient;
+    const CompositionData* composition;
 }
 
 //===------------------------------------------------------------------------===
@@ -57,46 +57,84 @@
 
         auto formatter = data::Formatter(_gradientBuffer.contents, gradientBufferSize);
 
-        auto gradient = formatter.assign_root( Gradient {
-            .output_region = geometry::make_region({ 1, 1 }, { 8, 8 }),
-            .grid_size     = { 10, 10 }
-        });
+        auto composition = formatter.assign_root( CompositionData {
+            .base_region = geometry::make_region({ 1, 1 }, { 2, 8 }),
+            .grid_size   = { 10, 10 },
+            .offset      = { 3, 0 },
+            0
+        } );
 
-        // • Knots
+        // • Insert three empty gradients and initialize the first
+        //
+        auto gradients = data::append( formatter, composition->gradients, {
+            { 0 },
+            { 0 },
+            { 0 }
+        } );
+
+        auto gradient = gradients.begin();
+
+        //  - Knots
         //
         data::append( formatter, gradient->knots, {
             0.0f, 0.0f, 0.0f, 0.0f,
-            0.3400f,
-            0.3401f,
-            0.3402f,
+            0.45f,
+            0.50f,
+            0.55f,
             1.0f, 1.0f, 1.0f, 1.0f
         } );
 
-        // • Points
+        //  - Points
         //
         const auto begin_color = simd::float4{ 8.5f,  5.5f, -8.5f, 1.0f };
-        const auto end_color   = simd::float4{ 7.5f, -2.5f, -5.5f, 1.0f };
+        const auto end_color   = simd::float4{ 5.5f, -2.5f, -5.5f, 1.0f };
 
         data::append( formatter, gradient->points, {
             begin_color, begin_color,
             simd::float4{ 20.0f,  40.0f,  60.0f, 1.0f },
-            simd::float4{ 75.0f, -15.0f,  30.0f, 0.3f },
-            simd::float4{ 15.0f, -12.0f, -32.0f, 1.0f },
+            simd::float4{ 75.0f, -15.0f,  30.0f, 1.0f },
+            simd::float4{ 15.0f, -18.0f, -40.0f, 1.0f },
             end_color, end_color
+        } );
+
+        //  - Reference the first gradient's data directly in the second
+        //
+        gradient[1] = gradient[0];
+
+        //  - Reference the first gradient's points in the third, but use different knots
+        //
+        gradient[2].points = gradient[0].points;
+
+        data::append( formatter, gradient[2].knots, {
+            0.0f, 0.0f, 0.0f, 0.0f,
+            0.25f,
+            0.30f,
+            0.35f,
+            1.0f, 1.0f, 1.0f, 1.0f
         } );
 
         // • Aspect ratio
         //
-        const auto aspect_gcd = std::gcd(gradient->grid_size.x, gradient->grid_size.y);
+        const auto aspect_gcd = std::gcd(composition->grid_size.x, composition->grid_size.y);
 
         _aspectRatio = {
-            gradient->grid_size.x / aspect_gcd,
-            gradient->grid_size.y / aspect_gcd
+            composition->grid_size.x / aspect_gcd,
+            composition->grid_size.y / aspect_gcd
         };
+
+        // • Maximum interval count across all gradients
+        //
+        const auto maxKnotsIt = std::max_element(gradients.begin(), gradients.end(),
+                                                 [](const auto& lhs, const auto& rhs) -> bool {
+
+            return lhs.knots.count < rhs.knots.count;
+        });
+
+        _maxIntervalCount = bspline::max_intervals(maxKnotsIt->knots.count);
 
         // • Keep a pointer
         //
-        self->gradient = gradient;
+        self->composition = composition;
     }
 
     return self;
@@ -106,9 +144,9 @@
 #pragma mark - Properties
 //===------------------------------------------------------------------------===
 
-- (NSInteger)maxIntervalCount {
+- (NSInteger)gradientCount {
 
-    return bspline::max_intervals(gradient->knots.count);
+    return composition->gradients.count;
 }
 
 @end

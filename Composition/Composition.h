@@ -36,6 +36,7 @@
 // • Properties
 //
 @property (nonnull, nonatomic, readonly) id<MTLBuffer> gradientBuffer;
+@property (nonatomic, readonly) NSInteger gradientCount;
 @property (nonatomic, readonly) NSInteger maxIntervalCount;
 @property (nonatomic, readonly) simd_uint2 aspectRatio;
 

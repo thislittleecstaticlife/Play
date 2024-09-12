@@ -1,5 +1,5 @@
 //
-//  Presentation.hpp
+//  CompositionData.hpp
 //
 //  Copyright © 2024 Robert Guequierre
 //
@@ -31,12 +31,28 @@
 
 struct Gradient
 {
-    geometry::Region                output_region;
-    simd::uint2                     grid_size;
     data::ArrayRef<float>           knots;
     data::ArrayRef<simd::float4>    points;
 };
 
 #if !defined ( __METAL_VERSION__ )
 static_assert( data::is_trivial_layout<Gradient>(), "Unexpected layout" );
+#endif
+
+//===------------------------------------------------------------------------===
+//
+// • CompositionData
+//
+//===------------------------------------------------------------------------===
+
+struct CompositionData
+{
+    geometry::Region            base_region;
+    simd::uint2                 grid_size;
+    simd::int2                  offset;
+    data::ArrayRef<Gradient>    gradients;
+};
+
+#if !defined ( __METAL_VERSION__ )
+static_assert( data::is_trivial_layout<CompositionData>(), "Unexpected layout" );
 #endif
