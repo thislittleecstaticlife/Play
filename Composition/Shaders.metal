@@ -26,6 +26,46 @@ using namespace geometry;
 using namespace metal;
 
 //===------------------------------------------------------------------------===
+// • Borders
+//===------------------------------------------------------------------------===
+
+struct BorderVertex
+{
+    float4 position [[ position ]];
+    half4  color;
+};
+
+[[fragment]] half4 border_fragment(BorderVertex in [[ stage_in ]])
+{
+    return in.color;
+}
+
+[[vertex]] BorderVertex border_vertex(constant CompositionData& composition [[ buffer(0)   ]],
+                                      ushort                    vid         [[ vertex_id   ]],
+                                      ushort                    iid         [[ instance_id ]])
+{
+    // • Clockwise quad triangle strip
+    //
+    //  1   3
+    //  | \ |
+    //  0   2
+    //
+    const auto region  = composition.border_region + composition.offset*iid;
+    const auto rect    = geometry::make_device_rect(region, composition.grid_size);
+
+    const auto is_left = 0 != (vid & 0b10);
+    const auto nx      = is_left ? rect.left : rect.right;
+
+    const auto is_top  = 0 != (vid & 0b01);
+    const auto ny      = is_top ? rect.top : rect.bottom;
+
+    return {
+        .position = { nx, ny, 0.75f, 1.0f },
+        .color    = half4( half3(composition.border_color), 1.0h )
+    };
+}
+
+//===------------------------------------------------------------------------===
 // • Gradient rendering
 //===------------------------------------------------------------------------===
 
@@ -114,7 +154,7 @@ struct GradientPayload
 
     const    auto  F      = bspline::calculate_interval_coefficients(k, i);
     constant auto* P      = data::cdata(composition, gradient->points);
-    const    auto  region = composition->base_region + composition->offset*gradient_index;
+    const    auto  region = composition->content_region + composition->offset*gradient_index;
     const    auto  frame  = geometry::make_device_rect(region, composition->grid_size);
     const    auto  x0     = mix(frame.left, frame.right, k[i+3]);
     const    auto  x1     = mix(frame.left, frame.right, k[i+4]);
@@ -125,13 +165,13 @@ struct GradientPayload
         .P0 = P[i+0], .P1 = P[i+1], .P2 = P[i+2], .P3 = P[i+3]
     };
 
-    payload.vertices[0] = { .position = { x0, frame.bottom, 0.0f, 1.0f }, .u = 0.0f };
-    payload.vertices[1] = { .position = { x0, frame.top,    0.0f, 1.0f }, .u = 0.0f };
-    payload.vertices[2] = { .position = { x1, frame.bottom, 0.0f, 1.0f }, .u = du   };
+    payload.vertices[0] = { .position = { x0, frame.bottom, 0.5f, 1.0f }, .u = 0.0f };
+    payload.vertices[1] = { .position = { x0, frame.top,    0.5f, 1.0f }, .u = 0.0f };
+    payload.vertices[2] = { .position = { x1, frame.bottom, 0.5f, 1.0f }, .u = du   };
 
-    payload.vertices[3] = { .position = { x1, frame.bottom, 0.0f, 1.0f }, .u = du   };
-    payload.vertices[4] = { .position = { x0, frame.top,    0.0f, 1.0f }, .u = 0.0f };
-    payload.vertices[5] = { .position = { x1, frame.top,    0.0f, 1.0f }, .u = du   };
+    payload.vertices[3] = { .position = { x1, frame.bottom, 0.5f, 1.0f }, .u = du   };
+    payload.vertices[4] = { .position = { x0, frame.top,    0.5f, 1.0f }, .u = 0.0f };
+    payload.vertices[5] = { .position = { x1, frame.top,    0.5f, 1.0f }, .u = du   };
 
     mesh_grid.set_threadgroups_per_grid({ 1, 1, 1});
 }
@@ -168,7 +208,7 @@ struct GradientPayload
 
     const    auto  F      = bspline::calculate_interval_coefficients(k, i);
     constant auto* P      = data::cdata(composition, gradient->points);
-    const    auto  region = composition->base_region + composition->offset*gradient_index;
+    const    auto  region = composition->content_region + composition->offset*gradient_index;
     const    auto  frame  = geometry::make_device_rect(region, composition->grid_size);
     const    auto  y0     = mix(frame.bottom, frame.top, k[i+3]);
     const    auto  y1     = mix(frame.bottom, frame.top, k[i+4]);
@@ -179,13 +219,13 @@ struct GradientPayload
         .P0 = P[i+0], .P1 = P[i+1], .P2 = P[i+2], .P3 = P[i+3]
     };
 
-    payload.vertices[0] = { .position = { frame.left,  y0, 0.0f, 1.0f }, .u = 0.0f };
-    payload.vertices[1] = { .position = { frame.left,  y1, 0.0f, 1.0f }, .u = du   };
-    payload.vertices[2] = { .position = { frame.right, y0, 0.0f, 1.0f }, .u = 0.0f };
+    payload.vertices[0] = { .position = { frame.left,  y0, 0.5f, 1.0f }, .u = 0.0f };
+    payload.vertices[1] = { .position = { frame.left,  y1, 0.5f, 1.0f }, .u = du   };
+    payload.vertices[2] = { .position = { frame.right, y0, 0.5f, 1.0f }, .u = 0.0f };
 
-    payload.vertices[3] = { .position = { frame.right, y0, 0.0f, 1.0f }, .u = 0.0f };
-    payload.vertices[4] = { .position = { frame.left,  y1, 0.0f, 1.0f }, .u = du   };
-    payload.vertices[5] = { .position = { frame.right, y1, 0.0f, 1.0f }, .u = du   };
+    payload.vertices[3] = { .position = { frame.right, y0, 0.5f, 1.0f }, .u = 0.0f };
+    payload.vertices[4] = { .position = { frame.left,  y1, 0.5f, 1.0f }, .u = du   };
+    payload.vertices[5] = { .position = { frame.right, y1, 0.5f, 1.0f }, .u = du   };
 
     mesh_grid.set_threadgroups_per_grid({ 1, 1, 1});
 }

@@ -33,6 +33,7 @@ class Renderer {
     // MARK: • Properties (Read-Only)
     //
     let pixelFormat = MTLPixelFormat.rgba16Float
+    let depthFormat = MTLPixelFormat.depth32Float
     let colorspace  : CGColorSpace
     let device      : MTLDevice
     let composition : Composition
@@ -41,6 +42,9 @@ class Renderer {
     // MARK: • Properties (Private)
     //
     private let gradientPipelineState : MTLRenderPipelineState
+    private let borderPipelineState   : MTLRenderPipelineState
+    private let depthState            : MTLDepthStencilState
+    private var depthTexture          : MTLTexture?
 
     //===--------------------------------------------------------------------===
     // MARK: • Initilization
@@ -59,7 +63,30 @@ class Renderer {
                 library.makeRenderPipelineState( objectFunctionName: "vertical_gradient_object",
                                                  meshFunctionName: "gradient_mesh",
                                                  fragmentFunctionName: "gradient_fragment",
-                                                 pixelFormat: self.pixelFormat ) else {
+                                                 pixelFormat: self.pixelFormat,
+                                                 depthFormat: self.depthFormat ) else {
+            return nil
+        }
+
+        // • Border pipeline
+        //
+        guard let borderPipelineState =
+                library.makeRenderPipelineState(vertexFunctionName: "border_vertex",
+                                                fragmentFunctionName: "border_fragment",
+                                                pixelFormat: self.pixelFormat,
+                                                depthFormat: self.depthFormat ) else {
+            return nil
+        }
+
+        // • Depth/stencil state
+        //
+        let depthStencilDescriptor = MTLDepthStencilDescriptor()
+        depthStencilDescriptor.depthCompareFunction = .less
+        depthStencilDescriptor.isDepthWriteEnabled  = true
+
+        guard let depthState =
+                library.device.makeDepthStencilState(descriptor: depthStencilDescriptor) else {
+
             return nil
         }
 
@@ -69,6 +96,8 @@ class Renderer {
         self.device                = library.device
         self.composition           = composition
         self.gradientPipelineState = gradientPipelineState
+        self.borderPipelineState   = borderPipelineState
+        self.depthState            = depthState
     }
 
     //===--------------------------------------------------------------------===
@@ -77,14 +106,32 @@ class Renderer {
     @discardableResult
     func draw(to outputTexture: MTLTexture, with commandBuffer: MTLCommandBuffer) -> Bool {
 
-        let clearColor = MTLClearColor(color: composition.backgroundColor)
-
-        guard let renderEncoder = commandBuffer.makeRenderCommandEncoder(to: outputTexture,
-                                                                         clearColor: clearColor) else {
+        guard let depthTexture = depthTexture(for: outputTexture) else {
             return false
         }
 
+        let renderPassDescriptor = MTLRenderPassDescriptor()
+        renderPassDescriptor.colorAttachments[0].texture     = outputTexture
+        renderPassDescriptor.colorAttachments[0].clearColor  = .init(color: composition.backgroundColor)
+        renderPassDescriptor.colorAttachments[0].loadAction  = .clear
+        renderPassDescriptor.colorAttachments[0].storeAction = .store
+
+        renderPassDescriptor.depthAttachment.texture     = depthTexture
+        renderPassDescriptor.depthAttachment.clearDepth  = 1.0
+        renderPassDescriptor.depthAttachment.loadAction  = .clear
+        renderPassDescriptor.depthAttachment.storeAction = .dontCare
+
+        guard let renderEncoder =
+                commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else {
+
+            return false
+        }
+
+        // • Render the foreground gradient content
+        //
         renderEncoder.setRenderPipelineState(gradientPipelineState)
+        renderEncoder.setDepthStencilState(depthState)
+
         renderEncoder.setObjectBuffer(composition.gradientBuffer, offset: 0, index: 0)
 
         let threadsPerObjectThreadgroup = MTLSizeMake(gradientPipelineState.objectThreadExecutionWidth, 1, 1)
@@ -93,8 +140,43 @@ class Renderer {
         renderEncoder.drawMeshThreads( MTLSizeMake(1, composition.gradientCount, composition.maxIntervalCount),
                                        threadsPerObjectThreadgroup: threadsPerObjectThreadgroup,
                                        threadsPerMeshThreadgroup: threadsPerMeshThreadgroup )
+
+        // • Render the borders behind
+        //
+        renderEncoder.setRenderPipelineState(borderPipelineState)
+        renderEncoder.setVertexBuffer(composition.gradientBuffer, offset: 0, index: 0)
+
+        renderEncoder.drawPrimitives( type: .triangleStrip, vertexStart: 0, vertexCount: 4,
+                                      instanceCount: composition.gradientCount )
+
         renderEncoder.endEncoding()
 
         return true
+    }
+
+    //===--------------------------------------------------------------------===
+    // MARK: • Private Methods
+    //
+    private func depthTexture(for colorTexture: MTLTexture) -> MTLTexture? {
+
+        if let depthTexture,
+           depthTexture.width == colorTexture.width,
+           depthTexture.height == colorTexture.height {
+
+            return depthTexture
+        }
+
+        let depthTextureDescriptor = MTLTextureDescriptor()
+        depthTextureDescriptor.textureType = .type2D
+        depthTextureDescriptor.pixelFormat = self.depthFormat
+        depthTextureDescriptor.width       = colorTexture.width
+        depthTextureDescriptor.height      = colorTexture.height
+        depthTextureDescriptor.depth       = 1
+        depthTextureDescriptor.storageMode = .memoryless
+        depthTextureDescriptor.usage       = .renderTarget
+
+        depthTexture = device.makeTexture(descriptor: depthTextureDescriptor)
+
+        return depthTexture
     }
 }

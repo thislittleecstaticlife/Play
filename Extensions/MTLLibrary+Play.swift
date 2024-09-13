@@ -78,7 +78,8 @@ extension MTLLibrary {
 
     func makeRenderPipelineState( vertexFunctionName: String,
                                   fragmentFunctionName: String,
-                                  pixelFormat: MTLPixelFormat ) -> MTLRenderPipelineState? {
+                                  pixelFormat: MTLPixelFormat,
+                                  depthFormat: MTLPixelFormat? = nil ) -> MTLRenderPipelineState? {
 
 
         guard let vertexFunction   = self.makeFunction(name: vertexFunctionName),
@@ -93,13 +94,18 @@ extension MTLLibrary {
         renderDescriptor.vertexFunction                  = vertexFunction
         renderDescriptor.fragmentFunction                = fragmentFunction
 
+        if let depthFormat {
+            renderDescriptor.depthAttachmentPixelFormat = depthFormat
+        }
+
         return try? self.device.makeRenderPipelineState(descriptor: renderDescriptor)
     }
 
     func makeRenderPipelineState( objectFunctionName: String,
                                   meshFunctionName: String,
                                   fragmentFunctionName: String,
-                                  pixelFormat: MTLPixelFormat ) -> MTLRenderPipelineState? {
+                                  pixelFormat: MTLPixelFormat,
+                                  depthFormat: MTLPixelFormat? = nil ) -> MTLRenderPipelineState? {
 
 
         guard let objectFunction   = self.makeFunction(name: objectFunctionName),
@@ -115,6 +121,10 @@ extension MTLLibrary {
         renderDescriptor.objectFunction                  = objectFunction
         renderDescriptor.meshFunction                    = meshFunction
         renderDescriptor.fragmentFunction                = fragmentFunction
+
+        if let depthFormat {
+            renderDescriptor.depthAttachmentPixelFormat = depthFormat
+        }
 
         guard let (pipelineState, _) =
                 try? self.device.makeRenderPipelineState(descriptor: renderDescriptor,

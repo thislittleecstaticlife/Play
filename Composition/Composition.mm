@@ -59,10 +59,12 @@
         auto formatter = data::Formatter(_gradientBuffer.contents, gradientBufferSize);
 
         auto composition = formatter.assign_root( CompositionData {
-            .base_region = geometry::make_region({ 1, 1 }, { 2, 8 }),
-            .grid_size   = { 10, 10 },
-            .offset      = { 3, 0 },
-            0
+            .content_region = geometry::make_region({ 4, 4 }, {  8, 32 }),
+            .border_region  = geometry::make_region({ 3, 3 }, { 10, 34 }),
+            .grid_size      = { 40, 40 },
+            .offset         = { 12, 0 },
+            .gradients      = { 0 },
+            .border_color   = cielab::convert_to_linear_display_P3({ 45.0f, 1.0f, 2.0f })
         } );
 
         // • Insert three empty gradients and initialize the first
@@ -118,7 +120,7 @@
 
         // • Background color
         //
-        _backgroundColor = cielab::convert_to_linear_display_P3({ 27.0f, -1.0f, -2.0f });
+        _backgroundColor = cielab::convert_to_linear_display_P3({ 15.0f, -1.0f, -2.0f });
 
         // • Aspect ratio
         //

@@ -47,10 +47,12 @@ static_assert( data::is_trivial_layout<Gradient>(), "Unexpected layout" );
 
 struct CompositionData
 {
-    geometry::Region            base_region;
+    geometry::Region            content_region;
+    geometry::Region            border_region;
     simd::uint2                 grid_size;
     simd::int2                  offset;
     data::ArrayRef<Gradient>    gradients;
+    simd::float3                border_color;
 };
 
 #if !defined ( __METAL_VERSION__ )
