@@ -59,8 +59,12 @@ class ContentView : MetalLayerView {
 
         // • Configure layer
         //
-        metalLayer.configure(from: renderer, maximumDrawableCount: maximumDrawableCount)
-        metalLayer.delegate = self
+        metalLayer.device               = renderer.device
+        metalLayer.colorspace           = renderer.colorspace
+        metalLayer.pixelFormat          = renderer.pixelFormat
+        metalLayer.maximumDrawableCount = maximumDrawableCount
+        metalLayer.framebufferOnly      = true
+        metalLayer.delegate             = self
     }
 
     //===--------------------------------------------------------------------===

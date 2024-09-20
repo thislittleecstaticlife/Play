@@ -1,5 +1,5 @@
 //
-//  MTLTexture+Play.swift
+//  CompositionData.hpp
 //
 //  Copyright © 2024 Robert Guequierre
 //
@@ -17,17 +17,40 @@
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 //
 
-import Metal
-import simd
+#pragma once
+
+#include <Graphics/Geometry.hpp>
+#include <Data/Array.hpp>
+#include <simd/simd.h>
 
 //===------------------------------------------------------------------------===
-// MARK: - extension MTLTexture
+// • Triangle
 //===------------------------------------------------------------------------===
 
-extension MTLTexture {
+struct Triangle
+{
+    simd::uint2     v[3];
+    uint32_t        depth;
+    simd::float4    color;
+};
 
-    var size : SIMD2<UInt32> {
+#if !defined ( __METAL_VERSION__ )
+static_assert( data::is_trivial_layout<Triangle>(), "Unexpected layout" );
+#endif
 
-        .init( x: UInt32(self.width), y: UInt32(self.height) )
-    }
-}
+//===------------------------------------------------------------------------===
+//
+// • CompositionData
+//
+//===------------------------------------------------------------------------===
+
+struct CompositionData
+{
+    simd::uint2                 grid_size;
+    uint32_t                    depth_scale;
+    data::ArrayRef<Triangle>    triangles;
+};
+
+#if !defined ( __METAL_VERSION__ )
+static_assert( data::is_trivial_layout<CompositionData>(), "Unexpected layout" );
+#endif

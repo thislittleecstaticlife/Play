@@ -10,16 +10,7 @@
 		E1C33BF52C90E4BF00F2370E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C33BF42C90E4BF00F2370E /* AppDelegate.swift */; };
 		E1C33BF92C90E4C000F2370E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E1C33BF82C90E4C000F2370E /* Assets.xcassets */; };
 		E1C33C042C90E5CF00F2370E /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C33C032C90E5CF00F2370E /* main.swift */; };
-		E1C33C0A2C90E85300F2370E /* BufferIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C33C082C90E85300F2370E /* BufferIndex.swift */; };
 		E1C33C0B2C90E85300F2370E /* BitmapDescription.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C33C092C90E85300F2370E /* BitmapDescription.swift */; };
-		E1C33C142C90E86A00F2370E /* MTLLibrary+Play.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C33C0C2C90E86900F2370E /* MTLLibrary+Play.swift */; };
-		E1C33C152C90E86A00F2370E /* MTLDevice+Play.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C33C0D2C90E86900F2370E /* MTLDevice+Play.swift */; };
-		E1C33C162C90E86A00F2370E /* MTLComputePipelineState+Play.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C33C0E2C90E86900F2370E /* MTLComputePipelineState+Play.swift */; };
-		E1C33C172C90E86A00F2370E /* MTLTextureDescriptor+Play.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C33C0F2C90E86A00F2370E /* MTLTextureDescriptor+Play.swift */; };
-		E1C33C182C90E86A00F2370E /* CAMetalLayer+Play.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C33C102C90E86A00F2370E /* CAMetalLayer+Play.swift */; };
-		E1C33C192C90E86A00F2370E /* MTLCommandBuffer+Play.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C33C112C90E86A00F2370E /* MTLCommandBuffer+Play.swift */; };
-		E1C33C1A2C90E86A00F2370E /* CGContext+Play.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C33C122C90E86A00F2370E /* CGContext+Play.swift */; };
-		E1C33C1B2C90E86A00F2370E /* MTLTexture+Play.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C33C132C90E86A00F2370E /* MTLTexture+Play.swift */; };
 		E1C33C212C90E87400F2370E /* MetalLayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C33C1E2C90E87400F2370E /* MetalLayerView.swift */; };
 		E1C33C242C90E97900F2370E /* Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C33C232C90E97900F2370E /* Renderer.swift */; };
 		E1C33C262C90E9DF00F2370E /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = E1C33C252C90E9DF00F2370E /* Shaders.metal */; };
@@ -35,16 +26,7 @@
 		E1C33BF82C90E4C000F2370E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		E1C33BFD2C90E4C000F2370E /* Play.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Play.entitlements; sourceTree = "<group>"; };
 		E1C33C032C90E5CF00F2370E /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
-		E1C33C082C90E85300F2370E /* BufferIndex.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BufferIndex.swift; sourceTree = "<group>"; };
 		E1C33C092C90E85300F2370E /* BitmapDescription.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BitmapDescription.swift; sourceTree = "<group>"; };
-		E1C33C0C2C90E86900F2370E /* MTLLibrary+Play.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "MTLLibrary+Play.swift"; sourceTree = "<group>"; };
-		E1C33C0D2C90E86900F2370E /* MTLDevice+Play.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "MTLDevice+Play.swift"; sourceTree = "<group>"; };
-		E1C33C0E2C90E86900F2370E /* MTLComputePipelineState+Play.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "MTLComputePipelineState+Play.swift"; sourceTree = "<group>"; };
-		E1C33C0F2C90E86A00F2370E /* MTLTextureDescriptor+Play.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "MTLTextureDescriptor+Play.swift"; sourceTree = "<group>"; };
-		E1C33C102C90E86A00F2370E /* CAMetalLayer+Play.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CAMetalLayer+Play.swift"; sourceTree = "<group>"; };
-		E1C33C112C90E86A00F2370E /* MTLCommandBuffer+Play.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "MTLCommandBuffer+Play.swift"; sourceTree = "<group>"; };
-		E1C33C122C90E86A00F2370E /* CGContext+Play.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CGContext+Play.swift"; sourceTree = "<group>"; };
-		E1C33C132C90E86A00F2370E /* MTLTexture+Play.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "MTLTexture+Play.swift"; sourceTree = "<group>"; };
 		E1C33C1D2C90E87400F2370E /* ContentView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		E1C33C1E2C90E87400F2370E /* MetalLayerView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MetalLayerView.swift; sourceTree = "<group>"; };
 		E1C33C232C90E97900F2370E /* Renderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Renderer.swift; sourceTree = "<group>"; };
@@ -52,11 +34,13 @@
 		E1C33C2A2C90EF0000F2370E /* Layout.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Layout.hpp; sourceTree = "<group>"; };
 		E1C33C2B2C90EF0700F2370E /* Geometry.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Geometry.hpp; sourceTree = "<group>"; };
 		E1C33C2C2C90EF7800F2370E /* Play-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Play-Bridging-Header.h"; sourceTree = "<group>"; };
-		E1C33C2D2C9205E000F2370E /* Pattern.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Pattern.hpp; sourceTree = "<group>"; };
+		E1C33C2D2C9205E000F2370E /* CompositionData.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = CompositionData.hpp; sourceTree = "<group>"; };
 		E1C33C2E2C9222E100F2370E /* Composition.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Composition.h; sourceTree = "<group>"; };
 		E1C33C2F2C9222E100F2370E /* Composition.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Composition.mm; sourceTree = "<group>"; };
 		E1C33C312C933E8400F2370E /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		E1C33C322C933E8400F2370E /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
+		E1C397D72C9E3745002E5C31 /* Array.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Array.hpp; sourceTree = "<group>"; };
+		E1C397D82C9E3745002E5C31 /* Formatter.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Formatter.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -78,7 +62,6 @@
 				E1C33C282C90EEC100F2370E /* Data */,
 				E1C33C292C90EEC600F2370E /* Graphics */,
 				E1C33C052C90E78A00F2370E /* UI */,
-				E1C33C062C90E79100F2370E /* Extensions */,
 				E1C33C072C90E79F00F2370E /* Utilities */,
 				E1C33C222C90E95B00F2370E /* Composition */,
 				E1C33BF32C90E4BF00F2370E /* Play */,
@@ -115,26 +98,10 @@
 			path = UI;
 			sourceTree = "<group>";
 		};
-		E1C33C062C90E79100F2370E /* Extensions */ = {
-			isa = PBXGroup;
-			children = (
-				E1C33C102C90E86A00F2370E /* CAMetalLayer+Play.swift */,
-				E1C33C122C90E86A00F2370E /* CGContext+Play.swift */,
-				E1C33C112C90E86A00F2370E /* MTLCommandBuffer+Play.swift */,
-				E1C33C0E2C90E86900F2370E /* MTLComputePipelineState+Play.swift */,
-				E1C33C0D2C90E86900F2370E /* MTLDevice+Play.swift */,
-				E1C33C0C2C90E86900F2370E /* MTLLibrary+Play.swift */,
-				E1C33C132C90E86A00F2370E /* MTLTexture+Play.swift */,
-				E1C33C0F2C90E86A00F2370E /* MTLTextureDescriptor+Play.swift */,
-			);
-			path = Extensions;
-			sourceTree = "<group>";
-		};
 		E1C33C072C90E79F00F2370E /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
 				E1C33C092C90E85300F2370E /* BitmapDescription.swift */,
-				E1C33C082C90E85300F2370E /* BufferIndex.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -142,7 +109,7 @@
 		E1C33C222C90E95B00F2370E /* Composition */ = {
 			isa = PBXGroup;
 			children = (
-				E1C33C2D2C9205E000F2370E /* Pattern.hpp */,
+				E1C33C2D2C9205E000F2370E /* CompositionData.hpp */,
 				E1C33C2E2C9222E100F2370E /* Composition.h */,
 				E1C33C2F2C9222E100F2370E /* Composition.mm */,
 				E1C33C232C90E97900F2370E /* Renderer.swift */,
@@ -155,6 +122,8 @@
 			isa = PBXGroup;
 			children = (
 				E1C33C2A2C90EF0000F2370E /* Layout.hpp */,
+				E1C397D82C9E3745002E5C31 /* Formatter.hpp */,
+				E1C397D72C9E3745002E5C31 /* Array.hpp */,
 			);
 			path = Data;
 			sourceTree = "<group>";
@@ -195,7 +164,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1540;
-				LastUpgradeCheck = 1540;
+				LastUpgradeCheck = 1600;
 				TargetAttributes = {
 					E1C33BF02C90E4BF00F2370E = {
 						CreatedOnToolsVersion = 15.4;
@@ -238,23 +207,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E1C33C172C90E86A00F2370E /* MTLTextureDescriptor+Play.swift in Sources */,
-				E1C33C142C90E86A00F2370E /* MTLLibrary+Play.swift in Sources */,
 				E1C33C272C90EB1E00F2370E /* ContentView.swift in Sources */,
 				E1C33C242C90E97900F2370E /* Renderer.swift in Sources */,
 				E1C33C042C90E5CF00F2370E /* main.swift in Sources */,
-				E1C33C0A2C90E85300F2370E /* BufferIndex.swift in Sources */,
-				E1C33C152C90E86A00F2370E /* MTLDevice+Play.swift in Sources */,
 				E1C33C212C90E87400F2370E /* MetalLayerView.swift in Sources */,
-				E1C33C182C90E86A00F2370E /* CAMetalLayer+Play.swift in Sources */,
-				E1C33C162C90E86A00F2370E /* MTLComputePipelineState+Play.swift in Sources */,
 				E1C33C262C90E9DF00F2370E /* Shaders.metal in Sources */,
-				E1C33C1B2C90E86A00F2370E /* MTLTexture+Play.swift in Sources */,
-				E1C33C1A2C90E86A00F2370E /* CGContext+Play.swift in Sources */,
 				E1C33BF52C90E4BF00F2370E /* AppDelegate.swift in Sources */,
 				E1C33C302C9222E100F2370E /* Composition.mm in Sources */,
 				E1C33C0B2C90E85300F2370E /* BitmapDescription.swift in Sources */,
-				E1C33C192C90E86A00F2370E /* MTLCommandBuffer+Play.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -295,6 +255,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -360,6 +321,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -392,6 +354,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 2YGKY2CNSZ;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -421,6 +384,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 2YGKY2CNSZ;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;

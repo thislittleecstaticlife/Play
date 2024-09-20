@@ -18,7 +18,7 @@
 //
 
 #import "Composition.h"
-#import "Pattern.hpp"
+#import "CompositionData.hpp"
 
 #import <numeric>
 
@@ -30,7 +30,7 @@
 
 @implementation Composition
 {
-    const Pattern* pattern;
+    const CompositionData* composition;
 }
 
 //===------------------------------------------------------------------------===
@@ -43,35 +43,68 @@
 
     if (nil != self) {
 
-        // • Pattern buffer
+        // • Composition data buffer
         //
-        _patternBuffer = [device newBufferWithLength:data::aligned_size<Pattern>()
-                                             options:0];
-        if (nil == _patternBuffer) {
+        const auto bufferLength = uint32_t{ 512 };
+
+        _compositionBuffer = [device newBufferWithLength:bufferLength options:0];
+
+        if (nil == _compositionBuffer) {
             return nil;
         }
 
-        auto pattern = static_cast<Pattern*>(_patternBuffer.contents);
+        auto formatter = data::Formatter(_compositionBuffer.contents, bufferLength);
 
-        *pattern = {
-            .grid_size   = { 10, 10 },
-            .base_region = geometry::make_region({ 1, 1 }, { 8, 2 }),
-            .offset      = { 0, 3 },
-            .count       = 3
-        };
+        auto composition = formatter.assign_root( CompositionData {
+            .grid_size   = { 5, 5 },
+            .depth_scale = 4,
+            .triangles   = { 0 },
+        } );
+
+        // • Insert three triangles
+        //
+        data::append( formatter, composition->triangles, {
+            {
+                .v = {
+                    { 0, 0 },
+                    { 5, 0 },
+                    { 5, 5 }
+                },
+                .depth = 3,
+                .color = { 1, 1, 1, 1 }
+            },
+            {
+                .v = {
+                    { 4, 4 },
+                    { 1, 4 },
+                    { 1, 1 }
+                },
+                .depth = 3,
+                .color = { 1, 1, 1, 1 }
+            },
+            {
+                .v = {
+                    { 1, 1 },
+                    { 4, 1 },
+                    { 4, 4 }
+                },
+                .depth = 2,
+                .color = { 0, 0, 0, 1 }
+            }
+        } );
 
         // • Aspect ratio
         //
-        const auto aspect_gcd = std::gcd(pattern->grid_size.x, pattern->grid_size.y);
+        const auto aspect_gcd = std::gcd(composition->grid_size.x, composition->grid_size.y);
 
         _aspectRatio = {
-            pattern->grid_size.x / aspect_gcd,
-            pattern->grid_size.y / aspect_gcd
+            composition->grid_size.x / aspect_gcd,
+            composition->grid_size.y / aspect_gcd
         };
 
         // • Keep a pointer
         //
-        self->pattern = pattern;
+        self->composition = composition;
     }
 
     return self;
@@ -83,7 +116,7 @@
 
 - (NSInteger)instanceCount {
 
-    return pattern->count;
+    return composition->triangles.count;
 }
 
 @end

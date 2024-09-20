@@ -211,12 +211,12 @@ struct BitmapDescription {
     let bytesPerPixel    : Int
     let bitmapInfo       : CGBitmapInfo
     let alphaInfo        : CGImageAlphaInfo
-    let colorSpace       : CGColorSpace
+    let colorspace       : CGColorSpace
 
     //===--------------------------------------------------------------------===
     // MARK: • Initialization
     //
-    init?(width: Int, height: Int, pixel: BitmapPixelDescription, colorSpace: CGColorSpace) {
+    init?(width: Int, height: Int, pixel: BitmapPixelDescription, colorspace: CGColorSpace) {
 
         guard 1 <= width && 1 <= height else  {
             return nil
@@ -229,21 +229,33 @@ struct BitmapDescription {
         self.bytesPerPixel    = pixel.bytesPerPixel
         self.bitmapInfo       = pixel.bitmapInfo
         self.alphaInfo        = pixel.alphaInfo
-        self.colorSpace       = colorSpace
+        self.colorspace       = colorspace
     }
 
     init?(width: Int, height: Int, pixel: BitmapPixelDescription, colorSpaceName: CFString) {
 
-        guard let colorSpace = CGColorSpace(name: colorSpaceName) else {
+        guard let colorspace = CGColorSpace(name: colorSpaceName) else {
             return nil
         }
 
-        self.init(width: width, height: height, pixel: pixel, colorSpace: colorSpace)
+        self.init(width: width, height: height, pixel: pixel, colorspace: colorspace)
     }
 
-    init?(size: CGSize, pixel: BitmapPixelDescription, colorSpace: CGColorSpace) {
+    init?(size: CGSize, pixel: BitmapPixelDescription, colorspace: CGColorSpace) {
 
-        self.init(width: Int(size.width), height: Int(size.height), pixel: pixel, colorSpace: colorSpace)
+        self.init( width: Int(size.width), height: Int(size.height), pixel: pixel,
+                   colorspace: colorspace )
+    }
+
+    init?(from texture: MTLTexture, colorspace: CGColorSpace, alphaType: AlphaType = .none) {
+
+        guard let pixel = BitmapPixelDescription(pixelFormat: texture.pixelFormat,
+                                                 alphaType: alphaType) else {
+            return nil
+        }
+
+        self.init( width: texture.width, height: texture.height, pixel: pixel,
+                   colorspace: colorspace )
     }
 }
 
@@ -261,7 +273,7 @@ extension BitmapDescription : Equatable {
             && lhs.bytesPerPixel    == rhs.bytesPerPixel
             && lhs.bitmapInfo       == rhs.bitmapInfo
             && lhs.alphaInfo        == rhs.alphaInfo
-            && CFEqual(lhs.colorSpace, rhs.colorSpace)
+            && CFEqual(lhs.colorspace, rhs.colorspace)
     }
 }
 
@@ -291,6 +303,6 @@ extension BitmapDescription {
 
         return CGContext( data: nil, width: self.width, height: self.height,
                           bitsPerComponent: self.bitsPerComponent, bytesPerRow: self.bytesPerRow,
-                          space: self.colorSpace, bitmapInfo: self.combinedBitmapInfo )
+                          space: self.colorspace, bitmapInfo: self.combinedBitmapInfo )
     }
 }

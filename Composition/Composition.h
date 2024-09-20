@@ -35,7 +35,7 @@
 
 // • Properties
 //
-@property (nonnull, nonatomic, readonly) id<MTLBuffer> patternBuffer;
+@property (nonnull, nonatomic, readonly) id<MTLBuffer> compositionBuffer;
 @property (nonatomic, readonly) NSInteger instanceCount;
 @property (nonatomic, readonly) simd_uint2 aspectRatio;
 

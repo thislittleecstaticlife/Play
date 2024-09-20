@@ -17,44 +17,51 @@
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 //
 
-#include <Composition/Pattern.hpp>
+#include <Composition/CompositionData.hpp>
 #include <metal_stdlib>
 
 using namespace geometry;
 using namespace metal;
 
 //===------------------------------------------------------------------------===
-// • white_fragment
+// ColorVertex
 //===------------------------------------------------------------------------===
 
-[[fragment]] half4 white_fragment(void)
+struct ColorVertex
 {
-    return { 1.0h, 1.0h, 1.0h, 1.0h };
+    float4 position [[ position ]];
+    half4  color;
+};
+
+//===------------------------------------------------------------------------===
+// • pass_through_fragment
+//===------------------------------------------------------------------------===
+
+[[fragment]] half4 pass_through_fragment(ColorVertex in [[ stage_in ]])
+{
+    return in.color;
 }
 
 //===------------------------------------------------------------------------===
-// • pattern_vertex
+// • triangle_vertex
 //===------------------------------------------------------------------------===
 
-[[vertex]] float4 pattern_vertex(constant Pattern& pattern [[ buffer(0)   ]],
-                                 ushort            vid     [[ vertex_id   ]],
-                                 ushort            iid     [[ instance_id ]])
+[[vertex]] ColorVertex triangle_vertex(constant CompositionData* composition [[ buffer(0)   ]],
+                                       ushort                    vid         [[ vertex_id   ]],
+                                       ushort                    iid         [[ instance_id ]])
 {
-    // • Clockwise quad triangle strip
-    //
-    //  1   3
-    //  | \ |
-    //  0   2
-    //
-    const auto offset  = pattern.offset * iid;
-    const auto region  = pattern.base_region + offset;
-    const auto rect    = geometry::make_device_rect(region, pattern.grid_size);
+    const auto triangle      = data::cdata(composition, composition->triangles)[iid];
+    const auto source_vertex = triangle.v[vid];
 
-    const auto is_left = 0 != (vid & 0b10);
-    const auto nx      = is_left ? rect.left : rect.right;
+    const auto dest_vertex = simd::float4 {
+        -1.0f + 2.0f*static_cast<float>(source_vertex.x) / static_cast<float>(composition->grid_size.x),
+         1.0f - 2.0f*static_cast<float>(source_vertex.y) / static_cast<float>(composition->grid_size.y),
+        static_cast<float>(triangle.depth) / static_cast<float>(composition->depth_scale),
+        1.0f
+    };
 
-    const auto is_top  = 0 != (vid & 0b01);
-    const auto ny      = is_top ? rect.top : rect.bottom;
-
-    return { nx, ny, 0.0f, 1.0f };
+    return {
+        .position = dest_vertex,
+        .color    = half4(triangle.color)
+    };
 }

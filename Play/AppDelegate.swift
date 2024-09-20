@@ -141,9 +141,14 @@ class AppDelegate : NSObject, NSApplicationDelegate {
 
         // • Redraw the current frame
         //
-        guard let texture = renderer.device.makeTexture2D(pixelFormat: renderer.pixelFormat,
-                                                          width: 1080, height: 1080,
-                                                          usage: .renderTarget),
+        let textureDescriptor = MTLTextureDescriptor()
+        textureDescriptor.textureType = .type2D
+        textureDescriptor.pixelFormat = renderer.pixelFormat
+        textureDescriptor.width       = 1080
+        textureDescriptor.height      = 1080
+        textureDescriptor.usage       = .renderTarget
+
+        guard let texture = renderer.device.makeTexture(descriptor: textureDescriptor),
               let commandQueue = renderer.device.makeCommandQueue(),
               let commandBuffer = commandQueue.makeCommandBuffer() else {
 
@@ -161,7 +166,8 @@ class AppDelegate : NSObject, NSApplicationDelegate {
 
         // • Create an NSImage from the texture
         //
-        guard let bitmap = CGContext.make(from: texture, colorSpace: renderer.colorspace),
+        guard let bitmapDescription = BitmapDescription(from: texture, colorspace: renderer.colorspace),
+              let bitmap = bitmapDescription.makeContext(),
               let bitmapData = bitmap.data else {
 
             return
