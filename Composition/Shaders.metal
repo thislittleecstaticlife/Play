@@ -17,7 +17,7 @@
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 //
 
-#include <Composition/Pattern.hpp>
+#include <Composition/CompositionData.hpp>
 #include <metal_stdlib>
 
 using namespace geometry;
@@ -33,12 +33,12 @@ using namespace metal;
 }
 
 //===------------------------------------------------------------------------===
-// • pattern_vertex
+// • composition_vertex
 //===------------------------------------------------------------------------===
 
-[[vertex]] float4 pattern_vertex(constant Pattern& pattern [[ buffer(0)   ]],
-                                 ushort            vid     [[ vertex_id   ]],
-                                 ushort            iid     [[ instance_id ]])
+[[vertex]] float4 composition_vertex(constant CompositionData& composition [[ buffer(0)   ]],
+                                     ushort                    vid         [[ vertex_id   ]],
+                                     ushort                    iid         [[ instance_id ]])
 {
     // • Clockwise quad triangle strip
     //
@@ -46,9 +46,8 @@ using namespace metal;
     //  | \ |
     //  0   2
     //
-    const auto offset  = pattern.offset * iid;
-    const auto region  = pattern.base_region + offset;
-    const auto rect    = geometry::make_device_rect(region, pattern.grid_size);
+    const auto region  = composition.base_region + (composition.offset * iid);
+    const auto rect    = geometry::make_device_rect(region, composition.grid_size);
 
     const auto is_left = 0 != (vid & 0b10);
     const auto nx      = is_left ? rect.left : rect.right;

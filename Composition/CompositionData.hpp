@@ -1,5 +1,5 @@
 //
-//  Pattern.hpp
+//  CompositionData.hpp
 //
 //  Copyright © 2024 Robert Guequierre
 //
@@ -24,11 +24,11 @@
 
 //===------------------------------------------------------------------------===
 //
-// • Pattern
+// • CompositionData
 //
 //===------------------------------------------------------------------------===
 
-struct Pattern
+struct CompositionData
 {
     simd::uint2         grid_size;
     geometry::Region    base_region;
@@ -37,5 +37,5 @@ struct Pattern
 };
 
 #if !defined ( __METAL_VERSION__ )
-static_assert( data::is_trivial_layout<Pattern>(), "Unexpected layout" );
+static_assert( data::is_trivial_layout<CompositionData>(), "Unexpected layout" );
 #endif

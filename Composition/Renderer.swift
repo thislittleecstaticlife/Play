@@ -56,7 +56,7 @@ class Renderer {
         // • Render pipeline
         //
         guard let renderPipelineState =
-                library.makeRenderPipelineState(vertexFunctionName: "pattern_vertex",
+                library.makeRenderPipelineState(vertexFunctionName: "composition_vertex",
                                                 fragmentFunctionName: "white_fragment",
                                                 pixelFormat: self.pixelFormat) else {
             return nil
@@ -84,7 +84,10 @@ class Renderer {
         }
 
         renderEncoder.setRenderPipelineState(renderPipelineState)
-        renderEncoder.setVertexBuffer(composition.patternBuffer, offset: 0, index: 0)
+
+        renderEncoder.setVertexBuffer( composition.compositionBuffer,
+                                       offset: composition.compositionDataOffset,
+                                       index: 0 )
 
         renderEncoder.drawPrimitives( type: .triangleStrip, vertexStart: 0, vertexCount: 4,
                                       instanceCount: composition.instanceCount )

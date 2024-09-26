@@ -1,5 +1,5 @@
 //
-//  Composition.h
+//  Allocation.hpp
 //
 //  Copyright © 2024 Robert Guequierre
 //
@@ -17,27 +17,31 @@
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 //
 
-#import <Foundation/Foundation.h>
-#import <Metal/Metal.h>
-#import <simd/simd.h>
+#pragma once
+
+#include <Data/Atom.hpp>
 
 //===------------------------------------------------------------------------===
-//
-#pragma mark - Composition Declaration
-//
+// • namespace data
 //===------------------------------------------------------------------------===
 
-@interface Composition : NSObject
+namespace data
+{
 
-// • Initialization
-//
-- (nullable instancetype)initWithDevice:(nonnull id<MTLDevice>)device;
+//===------------------------------------------------------------------------===
+// • Allocation primitives
+//===------------------------------------------------------------------------===
 
-// • Properties
-//
-@property (nonnull, nonatomic, readonly) id<MTLBuffer> compositionBuffer;
-@property (nonatomic, readonly) NSInteger compositionDataOffset;
-@property (nonatomic, readonly) NSInteger instanceCount;
-@property (nonatomic, readonly) simd_uint2 aspectRatio;
+namespace detail
+{
 
-@end
+AtomIterator reserve( AtomIterator dataIt, uint32_t requested_contents_size ) noexcept(false);
+
+AtomIterator reserve( AtomIterator dataIt, AtomIterator currAllocIt,
+                      uint32_t requested_contents_size ) noexcept(false);
+
+AtomIterator free(AtomIterator deallocIt) noexcept;
+
+} // namespace detail
+
+} // namespace data

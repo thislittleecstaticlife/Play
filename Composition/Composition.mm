@@ -18,7 +18,9 @@
 //
 
 #import "Composition.h"
-#import "Pattern.hpp"
+#import "CompositionData.hpp"
+
+#import <Data/Atom.hpp>
 
 #import <numeric>
 
@@ -30,7 +32,7 @@
 
 @implementation Composition
 {
-    const Pattern* pattern;
+    const CompositionData* composition;
 }
 
 //===------------------------------------------------------------------------===
@@ -43,35 +45,37 @@
 
     if (nil != self) {
 
-        // • Pattern buffer
+        // • Composition buffer
         //
-        _patternBuffer = [device newBufferWithLength:data::aligned_size<Pattern>()
-                                             options:0];
-        if (nil == _patternBuffer) {
+        const auto compositionBufferLength = uint32_t{ 256 };
+
+        _compositionBuffer = [device newBufferWithLength:compositionBufferLength options:0];
+
+        if (nil == _compositionBuffer) {
             return nil;
         }
 
-        auto pattern = static_cast<Pattern*>(_patternBuffer.contents);
-
-        *pattern = {
+        auto dataIt = data::prepare_layout(_compositionBuffer.contents,
+                                           compositionBufferLength,
+                                           CompositionData {
             .grid_size   = { 10, 10 },
             .base_region = geometry::make_region({ 1, 1 }, { 8, 2 }),
             .offset      = { 0, 3 },
             .count       = 3
-        };
-
-        // • Aspect ratio
-        //
-        const auto aspect_gcd = std::gcd(pattern->grid_size.x, pattern->grid_size.y);
-
-        _aspectRatio = {
-            pattern->grid_size.x / aspect_gcd,
-            pattern->grid_size.y / aspect_gcd
-        };
+        });
 
         // • Keep a pointer
         //
-        self->pattern = pattern;
+        composition = dataIt.contents<CompositionData>();
+
+        // • Aspect ratio
+        //
+        const auto aspect_gcd = std::gcd(composition->grid_size.x, composition->grid_size.y);
+
+        _aspectRatio = {
+            composition->grid_size.x / aspect_gcd,
+            composition->grid_size.y / aspect_gcd
+        };
     }
 
     return self;
@@ -81,9 +85,14 @@
 #pragma mark - Properties
 //===------------------------------------------------------------------------===
 
+- (NSInteger)compositionDataOffset {
+
+    return data::atom_header_length;
+}
+
 - (NSInteger)instanceCount {
 
-    return pattern->count;
+    return composition->count;
 }
 
 @end
