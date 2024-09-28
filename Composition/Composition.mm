@@ -55,18 +55,33 @@
             return nil;
         }
 
-        auto dataIt = data::prepare_layout(_compositionBuffer.contents,
-                                           compositionBufferLength,
-                                           CompositionData {
-            .grid_size   = { 10, 10 },
-            .base_region = geometry::make_region({ 1, 1 }, { 8, 2 }),
-            .offset      = { 0, 3 },
-            .count       = 3
-        });
+        try
+        {
+            auto [composition, rsrcIt] = data::prepare_resource_after(_compositionBuffer.contents,
+                                                                      compositionBufferLength,
+                                                                      CompositionData {
+                .grid_size = { 10, 10 },
+                .regions   = { 0 }
+            });
 
-        // • Keep a pointer
-        //
-        composition = dataIt.contents<CompositionData>();
+            auto regions = data::make_vector(composition->regions, rsrcIt);
+            auto region  = geometry::make_region({ 1, 1 }, { 8, 2 });
+
+            for (auto ii = 0; ii < 3; ++ii, region += simd::int2{ 0, 3 })
+            {
+                regions.push_back(region);
+            }
+
+            // • Properties
+            //
+            _resourceOffset = data::distance( composition, rsrcIt.get() );
+
+            self->composition = composition;
+        }
+        catch ( ... )
+        {
+            return nil;
+        }
 
         // • Aspect ratio
         //
@@ -85,14 +100,14 @@
 #pragma mark - Properties
 //===------------------------------------------------------------------------===
 
-- (NSInteger)compositionDataOffset {
+- (nonnull id<MTLBuffer>)resourceBuffer {
 
-    return data::atom_header_length;
+    return _compositionBuffer;
 }
 
 - (NSInteger)instanceCount {
 
-    return composition->count;
+    return composition->regions.count;
 }
 
 @end

@@ -41,7 +41,7 @@ namespace data
 template <TRIVIAL_LAYOUT Type_>
 struct VectorRef
 {
-    uint32_t offset;    // Offset from the beginning of the Data atom
+    uint32_t offset;    // Offset from the beginning of the Resource atom
     uint32_t count;
 
     constexpr bool is_null(void) noexcept
@@ -70,16 +70,16 @@ namespace detail
 {
 
 template <TrivialLayout Type_>
-AtomIterator allocation_header(AtomIterator dataIt, VectorRef<Type_> ref) noexcept(false)
+AtomIterator allocation_header(AtomIterator rsrcIt, VectorRef<Type_> ref) noexcept(false)
 {
-    if ( !is_aligned(ref.offset) || ref.offset < dataIt->length + atom_header_length ) 
+    if ( !is_aligned(ref.offset) || ref.offset < 2*atom_header_length )
     {
         assert( false );
         throw false;
     }
 
     auto allocation_offset = ref.offset - atom_header_length;
-    auto allocation        = unchecked::offset_by(dataIt.get(), allocation_offset);
+    auto allocation        = unchecked::offset_by(rsrcIt.get(), allocation_offset);
 
     if ( AtomID::allocation != allocation->identifier
         || allocation->length < atom_header_length + ref.count*sizeof(Type_) )
@@ -134,15 +134,15 @@ public:
 
     // • Initialization
     //
-    Vector(AtomIterator dataIt, vector_ref& ref) noexcept(false)
+    Vector(vector_ref& ref, AtomIterator rsrcIt) noexcept(false)
         :
-            m_dataIt    { dataIt  },
-            m_ref       { ref     },
-            m_allocation{ nullptr }
+            m_ref    { ref    },
+            m_rsrcIt { rsrcIt },
+            m_allocIt{ rsrcIt }
     {
         if ( !m_ref.is_null() )
         {
-            m_allocation = detail::allocation_header(m_dataIt, m_ref).get();
+            m_allocIt = detail::allocation_header(m_rsrcIt, m_ref);
         }
         else if ( !m_ref.empty() )
         {
@@ -189,7 +189,7 @@ public:
 
     size_type capacity(void) const noexcept
     {
-        return (nullptr != m_allocation) ? unchecked::capacity<value_type>(m_allocation) : 0;
+        return ( !m_ref.is_null() ) ? m_allocIt.contents_size() / sizeof(value_type) : 0;
     }
 
     size_type available(void) const noexcept
@@ -313,12 +313,12 @@ public:
 
     pointer data(void) noexcept
     {
-        return (nullptr != m_allocation) ? unchecked::contents<value_type>(m_allocation) : nullptr;
+        return ( !m_ref.is_null() ) ? m_allocIt.contents<value_type>() : nullptr;
     }
 
     const_pointer cdata(void) const noexcept
     {
-        return (nullptr != m_allocation) ? unchecked::contents<value_type>(m_allocation) : nullptr;
+        return ( !m_ref.is_null() ) ? m_allocIt.contents<value_type>() : nullptr;
     }
 
     const_pointer data(void) const noexcept
@@ -339,11 +339,11 @@ public:
 
         const auto contents_size = static_cast<uint32_t>( sizeof(value_type) * capacity );
 
-        auto allocIt = ( nullptr != m_allocation )
-            ? detail::reserve(m_dataIt, allocation_iterator(), contents_size)
-            : detail::reserve(m_dataIt, contents_size);
+        m_allocIt = ( !m_ref.is_null() )
+            ? detail::reserve(m_rsrcIt, m_allocIt, contents_size)
+            : detail::reserve(m_rsrcIt, contents_size);
 
-        update_for(allocIt);
+        m_ref.offset = m_allocIt.contents_offset();
     }
 
     // * Methods : container
@@ -361,9 +361,9 @@ public:
         {
             assert( false ); // TODO: Remove once this path has been tested
 
-            detail::free( m_dataIt, allocation_iterator() );
+            detail::free(m_rsrcIt, m_allocIt);
 
-            m_allocation = nullptr;
+            m_allocIt    = m_rsrcIt;
             m_ref.offset = 0;
         }
         else if ( size() < capacity() )
@@ -372,9 +372,8 @@ public:
 
             const auto contents_size = static_cast<uint32_t>( sizeof(value_type) * m_ref->count );
 
-            auto allocIt = detail::reserve(m_dataIt, allocation_iterator(), contents_size);
-
-            update_for(allocIt);
+            m_allocIt    = detail::reserve(m_rsrcIt, m_allocIt, contents_size);
+            m_ref.offset = m_allocIt.contents_offset();
         }
     }
 
@@ -421,7 +420,7 @@ public:
             reserve( (size() + 4) & ~3 );
         }
 
-        unchecked::contents<value_type>(m_allocation)[m_ref.count++] = value;
+        data()[m_ref.count++] = value;
     }
 
     void pop_back(void) noexcept
@@ -552,28 +551,49 @@ public:
 
 private:
 
-    // • Private Methods
-    //
-    void update_for(AtomIterator allocIt) noexcept
-    {
-        m_allocation = allocIt.get();
-        m_ref.offset = allocIt.offset() + atom_header_length;
-    }
-
-    AtomIterator allocation_iterator(void) noexcept
-    {
-        return { m_allocation, m_ref.offset - atom_header_length };
-    }
-
-private:
-
     // • Data members
     //
-    AtomIterator    m_dataIt;
     vector_ref&     m_ref;
-    Atom*           m_allocation;
+    AtomIterator    m_rsrcIt;
+    AtomIterator    m_allocIt;
 };
 
-#endif // !defined ( __METAL_VERSION__ )
+//===------------------------------------------------------------------------===
+// • Utilities
+//===------------------------------------------------------------------------===
+
+template <TrivialLayout Type_>
+data::Vector<Type_> make_vector(VectorRef<Type_>& ref, AtomIterator rsrcIt)
+{
+    return  { ref, rsrcIt };
+}
+
+#else // if defined ( __METAL_VERSION__ )
+
+//===------------------------------------------------------------------------===
+//
+// • Vector utilities (Metal)
+//
+//===------------------------------------------------------------------------===
+
+template <TRIVIAL_LAYOUT Type_>
+const device Type_* contents(VectorRef<Type_> ref, const device uint8_t* resource)
+{
+    return reinterpret_cast<const device Type_*>(resource + ref.offset);
+}
+
+template <TRIVIAL_LAYOUT Type_>
+device Type_* contents(VectorRef<Type_> ref, device uint8_t* resource)
+{
+    return reinterpret_cast<device Type_*>(resource + ref.offset);
+}
+
+template <TRIVIAL_LAYOUT Type_>
+constant Type_* contents(VectorRef<Type_> ref, constant uint8_t* resource)
+{
+    return reinterpret_cast<constant Type_*>(resource + ref.offset);
+}
+
+#endif
 
 } // namespace data

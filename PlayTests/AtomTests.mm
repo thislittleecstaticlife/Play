@@ -44,8 +44,8 @@ using namespace data;
     {
         const auto contents = std::vector<uint8_t>{ {
 
-            // Atom: length, identifier, previous, reserved
-            16,0,0,0,   'a','t','a','d',     0,0,0,0,   0,0,0,0,
+            // Atom: length, identifier, previous, user_defined
+            16,0,0,0,   'c','r','s','r',     0,0,0,0,   0,0,0,0,
             32,0,0,0,   'e','e','r','f',    16,0,0,0,   0,0,0,0,
                 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
             48,0,0,0,   'c','o','l','a',    32,0,0,0,   0,0,0,0,
@@ -58,17 +58,17 @@ using namespace data;
 
         XCTAssertTrue( validate_layout(contents.data(), contents_length) );
 
-        auto dataIt = data_iterator(contents.data(), contents_length);
+        auto rsrcIt = resource_iterator(contents.data(), contents_length);
 
-        XCTAssertEqual( dataIt->identifier, AtomID::data );
-        XCTAssertEqual( dataIt->length, 16 );
-        XCTAssertTrue( dataIt.empty() );
+        XCTAssertEqual( rsrcIt->identifier, AtomID::resource );
+        XCTAssertEqual( rsrcIt->length, 16 );
+        XCTAssertTrue( rsrcIt.empty() );
 
-        auto freeIt = std::next(dataIt);
+        auto freeIt = std::next(rsrcIt);
 
         XCTAssertEqual( freeIt->identifier, AtomID::free );
         XCTAssertEqual( freeIt->length, 32 );
-        XCTAssertEqual( freeIt->previous, dataIt->length );
+        XCTAssertEqual( freeIt->previous, rsrcIt->length );
         XCTAssertFalse( freeIt.empty() );
 
         auto allocIt = std::next(freeIt);
@@ -87,7 +87,7 @@ using namespace data;
         XCTAssertEqual( endIt->previous, allocIt->length );
         XCTAssertTrue( endIt.empty() );
 
-        XCTAssertEqual( dataIt, std::prev(freeIt) );
+        XCTAssertEqual( rsrcIt, std::prev(freeIt) );
         XCTAssertEqual( freeIt, std::prev(allocIt) );
         XCTAssertEqual( allocIt, std::prev(endIt) );
     }
@@ -104,19 +104,19 @@ using namespace data;
         auto contents_length = uint32_t{ 1024 };
         auto contents        = std::make_unique<uint8_t[]>(contents_length);
 
-        auto dataIt = prepare_layout(contents.get(), 0, contents_length);
+        auto rsrcIt = prepare_resource(contents.get(), contents_length);
 
         XCTAssertTrue( validate_layout(contents.get(), contents_length) );
 
-        XCTAssertEqual( dataIt->identifier, AtomID::data );
-        XCTAssertEqual( dataIt->length, 16 );
-        XCTAssertTrue( dataIt.empty() );
+        XCTAssertEqual( rsrcIt->identifier, AtomID::resource );
+        XCTAssertEqual( rsrcIt->length, 16 );
+        XCTAssertTrue( rsrcIt.empty() );
 
-        auto freeIt = std::next(dataIt);
+        auto freeIt = std::next(rsrcIt);
 
         XCTAssertEqual( freeIt->identifier, AtomID::free );
         XCTAssertEqual( freeIt->length, contents_length - 2*atom_header_length );
-        XCTAssertEqual( freeIt->previous, dataIt->length );
+        XCTAssertEqual( freeIt->previous, rsrcIt->length );
         XCTAssertFalse( freeIt.empty() );
 
         auto endIt = end_iterator(contents.get(), contents_length);
@@ -127,7 +127,7 @@ using namespace data;
         XCTAssertEqual( endIt->previous, freeIt->length );
         XCTAssertTrue( endIt.empty() );
 
-        XCTAssertEqual( dataIt, std::prev(freeIt) );
+        XCTAssertEqual( rsrcIt, std::prev(freeIt) );
         XCTAssertEqual( freeIt, std::prev(endIt) );
     }
     catch ( ... )
@@ -136,34 +136,34 @@ using namespace data;
     }
 }
 
-- (void)testMinimalLayout {
+- (void)testMinimumLayout {
 
     try
     {
         auto contents_length = uint32_t{ 2*atom_header_length };
         auto contents        = std::make_unique<uint8_t[]>(contents_length);
 
-        auto dataIt = prepare_layout(contents.get(), 0, contents_length);
+        auto rsrcIt = prepare_resource(contents.get(), contents_length);
 
         XCTAssertTrue( validate_layout(contents.get(), contents_length) );
 
-        XCTAssertEqual( dataIt->identifier, AtomID::data );
-        XCTAssertEqual( dataIt->length, 16 );
-        XCTAssertTrue( dataIt.empty() );
+        XCTAssertEqual( rsrcIt->identifier, AtomID::resource );
+        XCTAssertEqual( rsrcIt->length, 16 );
+        XCTAssertTrue( rsrcIt.empty() );
 
         auto endIt = end_iterator(contents.get(), contents_length);
 
-        XCTAssertEqual( std::next(dataIt), endIt );
+        XCTAssertEqual( std::next(rsrcIt), endIt );
         XCTAssertEqual( endIt->identifier, AtomID::end );
         XCTAssertEqual( endIt->length, atom_header_length );
-        XCTAssertEqual( endIt->previous, dataIt->length );
+        XCTAssertEqual( endIt->previous, rsrcIt->length );
         XCTAssertTrue( endIt.empty() );
 
-        XCTAssertEqual( dataIt, std::prev(endIt) );
+        XCTAssertEqual( rsrcIt, std::prev(endIt) );
     }
     catch ( ... )
     {
-        XCTAssertTrue( false );
+        XCTFail();
     }
 }
 

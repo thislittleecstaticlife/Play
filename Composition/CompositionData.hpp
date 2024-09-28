@@ -20,6 +20,7 @@
 #pragma once
 
 #include <Graphics/Geometry.hpp>
+#include <Data/Vector.hpp>
 #include <simd/simd.h>
 
 //===------------------------------------------------------------------------===
@@ -30,10 +31,8 @@
 
 struct CompositionData
 {
-    simd::uint2         grid_size;
-    geometry::Region    base_region;
-    simd::int2          offset;
-    uint32_t            count;
+    simd::uint2                         grid_size;
+    data::VectorRef<geometry::Region>   regions;
 };
 
 #if !defined ( __METAL_VERSION__ )

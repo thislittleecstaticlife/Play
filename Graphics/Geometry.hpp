@@ -100,6 +100,18 @@ constexpr Region operator + (const Region rgn, simd::int2 offset)
     };
 }
 
+#if !defined ( __METAL_VERSION__ )
+inline Region& operator += (Region& rgn, simd::int2 offset)
+{
+    rgn.left   += offset.x;
+    rgn.top    += offset.y;
+    rgn.right  += offset.x;
+    rgn.bottom += offset.y;
+
+    return rgn;
+}
+#endif
+
 //===------------------------------------------------------------------------===
 // Rectangle
 //===------------------------------------------------------------------------===

@@ -44,12 +44,12 @@ using namespace data;
     {
         auto contents_length = uint32_t{ 1024 };
         auto contents        = std::make_unique<uint8_t[]>(contents_length);
-        auto dataIt          = prepare_layout(contents.get(), 0, contents_length);
+        auto rsrcIt          = prepare_resource(contents.get(), contents_length);
 
         XCTAssertTrue( validate_layout(contents.get(), contents_length) );
 
         auto ref    = VectorRef<int>{ 0 };
-        auto vector = Vector<int>{ dataIt, ref };
+        auto vector = Vector<int>{ ref, rsrcIt };
 
         XCTAssertEqual( vector.size(), 0 );
         XCTAssertTrue( vector.empty() );
@@ -96,12 +96,12 @@ using namespace data;
     {
         auto contents_length = uint32_t{ 1024 };
         auto contents        = std::make_unique<uint8_t[]>(contents_length);
-        auto dataIt          = prepare_layout(contents.get(), 0, contents_length);
+        auto rsrcIt          = prepare_resource(contents.get(), contents_length);
 
         XCTAssertTrue( validate_layout(contents.get(), contents_length) );
 
         auto ref    = VectorRef<int>{ };
-        auto vector = Vector<int>{ dataIt, ref };
+        auto vector = Vector<int>{ ref, rsrcIt };
 
         XCTAssertEqual( vector.size(), 0 );
         XCTAssertTrue( vector.empty() );
@@ -143,12 +143,12 @@ using namespace data;
     {
         auto contents_length = uint32_t{ 1024 };
         auto contents        = std::make_unique<uint8_t[]>(contents_length);
-        auto dataIt          = prepare_layout(contents.get(), 0, contents_length);
+        auto rsrcIt          = prepare_resource(contents.get(), contents_length);
 
         XCTAssertTrue( validate_layout(contents.get(), contents_length) );
 
         auto ref    = VectorRef<int>{ };
-        auto vector = Vector<int>{ dataIt, ref };
+        auto vector = Vector<int>{ ref, rsrcIt };
 
         try {
             vector.assign({ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 });
@@ -222,12 +222,12 @@ using namespace data;
     {
         auto contents_length = uint32_t{ 1024 };
         auto contents        = std::make_unique<uint8_t[]>(contents_length);
-        auto dataIt          = prepare_layout(contents.get(), 0, contents_length);
+        auto rsrcIt          = prepare_resource(contents.get(), contents_length);
 
         XCTAssertTrue( validate_layout(contents.get(), contents_length) );
 
         auto ref    = VectorRef<int>{ };
-        auto vector = Vector<int>{ dataIt, ref };
+        auto vector = Vector<int>{ ref, rsrcIt };
 
         try {
             vector.assign({ 0, 1, 2, 3, 14, 15, 16 });

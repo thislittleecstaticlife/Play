@@ -37,6 +37,7 @@ using namespace metal;
 //===------------------------------------------------------------------------===
 
 [[vertex]] float4 composition_vertex(constant CompositionData& composition [[ buffer(0)   ]],
+                                     constant uint8_t*         resource    [[ buffer(1)   ]],
                                      ushort                    vid         [[ vertex_id   ]],
                                      ushort                    iid         [[ instance_id ]])
 {
@@ -46,8 +47,9 @@ using namespace metal;
     //  | \ |
     //  0   2
     //
-    const auto region  = composition.base_region + (composition.offset * iid);
-    const auto rect    = geometry::make_device_rect(region, composition.grid_size);
+    constant auto* regions = data::contents(composition.regions, resource);
+
+    const auto rect    = geometry::make_device_rect(regions[iid], composition.grid_size);
 
     const auto is_left = 0 != (vid & 0b10);
     const auto nx      = is_left ? rect.left : rect.right;

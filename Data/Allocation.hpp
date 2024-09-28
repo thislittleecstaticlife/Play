@@ -19,6 +19,12 @@
 
 #pragma once
 
+//===------------------------------------------------------------------------===
+// • Host only
+//===------------------------------------------------------------------------===
+
+#if !defined ( __METAL_VERSION__ )
+
 #include <Data/Atom.hpp>
 
 //===------------------------------------------------------------------------===
@@ -45,3 +51,5 @@ AtomIterator free(AtomIterator deallocIt) noexcept;
 } // namespace detail
 
 } // namespace data
+
+#endif // !defined ( __METAL_VERSION__ )

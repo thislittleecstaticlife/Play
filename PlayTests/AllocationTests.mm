@@ -38,26 +38,27 @@ using namespace data;
 
 @implementation AllocationTests
 
+
 - (void)testNewReservation {
 
     try
     {
         auto contents_length = uint32_t{ 1024 };
         auto contents        = std::make_unique<uint8_t[]>(contents_length);
-        auto dataIt          = prepare_layout(contents.get(), 0, contents_length);
+        auto rsrcIt          = prepare_resource(contents.get(), contents_length);
 
         XCTAssertTrue( validate_layout(contents.get(), contents_length) );
 
-        auto allocIt = detail::reserve(dataIt, 34);
+        auto allocIt = detail::reserve(rsrcIt, 34);
 
         XCTAssertTrue( validate_layout(contents.get(), contents_length) );
 
         XCTAssertEqual( allocIt->identifier, AtomID::allocation );
         XCTAssertEqual( allocIt.offset(), atom_header_length );
         XCTAssertEqual( allocIt.contents_size(), 48 ); // aligned_size(34) = 48
-        XCTAssertEqual( std::next(dataIt), allocIt );
+        XCTAssertEqual( std::next(rsrcIt), allocIt );
 
-        auto alloc2It = detail::reserve(dataIt, 512);
+        auto alloc2It = detail::reserve(rsrcIt, 512);
 
         XCTAssertTrue( validate_layout(contents.get(), contents_length) );
 
@@ -69,7 +70,7 @@ using namespace data;
         // • Test iterators
         //
         {
-            auto testAlloc1It = std::next(dataIt);
+            auto testAlloc1It = std::next(rsrcIt);
 
             XCTAssertEqual( testAlloc1It->identifier, AtomID::allocation );
             XCTAssertEqual( testAlloc1It, allocIt );
@@ -93,11 +94,11 @@ using namespace data;
 
         // • Test iterators
         {
-            auto free1It = std::next(dataIt);
+            auto free1It = std::next(rsrcIt);
 
             XCTAssertEqual( free1It->identifier, AtomID::free );
             XCTAssertEqual( free1It->length, 64 );
-            XCTAssertEqual( free1It->previous, dataIt->length );
+            XCTAssertEqual( free1It->previous, rsrcIt->length );
 
             auto alloc2It = std::next(free1It);
 
@@ -120,11 +121,11 @@ using namespace data;
 
         // • Test iterators
         {
-            auto coalescedFreeIt = std::next(dataIt);
+            auto coalescedFreeIt = std::next(rsrcIt);
 
             XCTAssertEqual( coalescedFreeIt->identifier, AtomID::free );
             XCTAssertEqual( coalescedFreeIt->length, contents_length - 2*atom_header_length );
-            XCTAssertEqual( coalescedFreeIt->previous, dataIt->length );
+            XCTAssertEqual( coalescedFreeIt->previous, rsrcIt->length );
             XCTAssertTrue( std::next(coalescedFreeIt).is_end() );
         }
     }
@@ -140,13 +141,13 @@ using namespace data;
     {
         auto contents_length = uint32_t{ 1024 };
         auto contents        = std::make_unique<uint8_t[]>(contents_length);
-        auto dataIt          = prepare_layout(contents.get(), 0, contents_length);
+        auto rsrcIt          = prepare_resource(contents.get(), contents_length);
 
         XCTAssertTrue( validate_layout(contents.get(), contents_length) );
 
         // • First reservation
         //
-        auto allocIt = detail::reserve(dataIt, 34);
+        auto allocIt = detail::reserve(rsrcIt, 34);
 
         XCTAssertTrue( validate_layout(contents.get(), contents_length) );
 
@@ -156,7 +157,7 @@ using namespace data;
 
         // • Second reservation
         //
-        auto alloc2It = detail::reserve(dataIt, 512);
+        auto alloc2It = detail::reserve(rsrcIt, 512);
 
         XCTAssertTrue( validate_layout(contents.get(), contents_length) );
 
@@ -166,7 +167,7 @@ using namespace data;
 
         // • Just for coverage, perform a same-size reallocation (no-op)
         //
-        auto sameSizeIt = detail::reserve(dataIt, allocIt, 42);
+        auto sameSizeIt = detail::reserve(rsrcIt, allocIt, 42);
 
         XCTAssertEqual( sameSizeIt, allocIt );
         XCTAssertEqual( sameSizeIt.offset(), 16 );
@@ -174,7 +175,7 @@ using namespace data;
 
         // • First shrink the second
         //
-        auto shrinkIt = detail::reserve(dataIt, alloc2It, 480);
+        auto shrinkIt = detail::reserve(rsrcIt, alloc2It, 480);
 
         XCTAssertTrue( validate_layout(contents.get(), contents_length) );
 
@@ -184,7 +185,7 @@ using namespace data;
 
         // • Reallocation of the second will extend it into the immediately following free space
         //
-        auto realloc2It = detail::reserve(dataIt, alloc2It, 540);
+        auto realloc2It = detail::reserve(rsrcIt, alloc2It, 540);
 
         XCTAssertEqual( realloc2It, alloc2It );
         XCTAssertEqual( realloc2It.offset(), 80 );
@@ -196,7 +197,7 @@ using namespace data;
 
         // • Reallocation of the first will move it past the second
         //
-        auto reallocIt = detail::reserve(dataIt, allocIt, 120);
+        auto reallocIt = detail::reserve(rsrcIt, allocIt, 120);
 
         XCTAssertTrue( validate_layout(contents.get(), contents_length) );
 

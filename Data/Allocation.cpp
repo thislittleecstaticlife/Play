@@ -19,10 +19,6 @@
 
 #include <Data/Allocation.hpp>
 
-//===------------------------------------------------------------------------===
-// • namespace data
-//===------------------------------------------------------------------------===
-
 namespace data
 {
 
@@ -66,11 +62,9 @@ void merge_next(Atom* atom) noexcept
     unchecked::next(atom)->previous = atom->length;
 }
 
-AtomIterator reserve_new(AtomIterator dataIt, uint32_t allocation_length) noexcept(false)
+AtomIterator reserve_new(AtomIterator rsrcIt, uint32_t allocation_length) noexcept(false)
 {
-    assert( AtomID::data == dataIt->identifier );
-
-    for ( auto atomIt = std::next(dataIt); !atomIt.is_end(); ++atomIt )
+    for ( auto atomIt = std::next(rsrcIt); !atomIt.is_end(); ++atomIt )
     {
         if ( AtomID::free != atomIt->identifier || atomIt->length < allocation_length ) {
             continue;
@@ -98,14 +92,18 @@ AtomIterator reserve_new(AtomIterator dataIt, uint32_t allocation_length) noexce
     throw false;
 }
 
-AtomIterator reserve( AtomIterator dataIt, uint32_t requested_contents_size ) noexcept(false)
+AtomIterator reserve( AtomIterator rsrcIt, uint32_t requested_contents_size ) noexcept(false)
 {
-    return reserve_new( dataIt, get_allocation_length(requested_contents_size) );
+    assert( AtomID::resource == rsrcIt->identifier );
+
+    return reserve_new( rsrcIt, get_allocation_length(requested_contents_size) );
 }
 
-AtomIterator reserve( AtomIterator dataIt, AtomIterator currAllocIt,
+AtomIterator reserve( AtomIterator rsrcIt, AtomIterator currAllocIt,
                       uint32_t requested_contents_size ) noexcept(false)
 {
+    assert( AtomID::resource == rsrcIt->identifier );
+
     const auto allocation_length = get_allocation_length(requested_contents_size);
 
     if ( allocation_length == currAllocIt->length )
@@ -156,7 +154,7 @@ AtomIterator reserve( AtomIterator dataIt, AtomIterator currAllocIt,
         // • Finally, perform a new full allocation, copy the existing contents,
         //      and free the previous allocation
         //
-        auto newAllocIt = reserve_new(dataIt, allocation_length);
+        auto newAllocIt = reserve_new(rsrcIt, allocation_length);
 
         if ( newAllocIt.is_end() ) {
             return newAllocIt;

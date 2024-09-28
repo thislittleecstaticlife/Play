@@ -19,12 +19,16 @@
 
 #pragma once
 
-#include <Data/Layout.hpp>
+//===------------------------------------------------------------------------===
+// • Host only
+//===------------------------------------------------------------------------===
 
 #if !defined ( __METAL_VERSION__ )
+
+#include <Data/Layout.hpp>
+
 #include <cassert>
 #include <iterator>
-#endif
 
 //===------------------------------------------------------------------------===
 // • namespace data
@@ -41,13 +45,13 @@ enum class AtomID : uint32_t
 {
     // • Valid layout:
     //
-    //  [length] 'data'
+    //  [    16] 'rsrc'
     //  [length] 'free'?
     // ([length] 'aloc'
     //  [length] 'free'?)*
     //  [    16] 'end '
 
-    data       = 'data',
+    resource   = 'rsrc',
     allocation = 'aloc',
     free       = 'free',
     end        = 'end ',
@@ -76,9 +80,8 @@ enum : uint32_t
 static_assert( 16 ==  sizeof(Atom), "Unexpected size" );
 static_assert( 16 == alignof(Atom), "Unexpected alignment" );
 
-#if !defined ( __METAL_VERSION__ )
-
 static_assert( data::is_trivial_layout<Atom>(), "Unexpected layout" );
+static_assert( data::is_aligned<Atom>(), "Unexpected alignment" );
 
 //===------------------------------------------------------------------------===
 //
@@ -99,7 +102,7 @@ bool valid_alignment_and_length(const Type_* contents, uint32_t contents_length)
     return true;
 }
 
-bool valid_data(const Atom* data, uint32_t contents_length) noexcept;
+bool valid_resource(const Atom* resource) noexcept;
 bool valid_end(const Atom* end) noexcept;
 
 bool valid_alignment(const Atom* atom) noexcept;
@@ -136,14 +139,14 @@ uint32_t capacity(const Atom* atom) noexcept
 }
 
 template <TrivialLayout Type_>
-    requires ( alignof(Type_) <= alignof(Atom) )
+requires ( alignof(Type_) <= alignof(Atom) )
 const Type_* contents(const Atom* atom) noexcept
 {
     return reinterpret_cast<const Type_*>(atom + 1);
 }
 
 template <TrivialLayout Type_>
-    requires ( alignof(Type_) <= alignof(Atom) )
+requires ( alignof(Type_) <= alignof(Atom) )
 Type_* contents(Atom* atom) noexcept
 {
     return reinterpret_cast<Type_*>(atom + 1);
@@ -237,20 +240,28 @@ public:
 
     // • Initialization
     //
-    __AtomIterator(pointer atom, uint32_t offset = 0)
-        :
-            m_atom  { atom   },
-            m_offset{ offset }
+    __AtomIterator(pointer resource)
+    :
+    m_atom  { resource },
+    m_offset{ 0        }
+    {
+        assert( valid_resource(m_atom) );
+    }
+
+    __AtomIterator(pointer atom, uint32_t offset)
+    :
+    m_atom  { atom   },
+    m_offset{ offset }
     {
         assert( valid_alignment(m_atom) && is_aligned(offset) );
     }
 
     template <bool MakeConst_>
-        requires (!IsMutable_)
+    requires (!IsMutable_)
     __AtomIterator(const __AtomIterator<MakeConst_>& other)
-        :
-            m_atom  { other.m_atom },
-            m_offset{ other.m_offset }
+    :
+    m_atom  { other.m_atom },
+    m_offset{ other.m_offset }
     {
     }
 
@@ -298,7 +309,7 @@ public:
 
     bool is_begin(void) const noexcept
     {
-        return AtomID::data == m_atom->identifier;
+        return 0 == m_atom->previous;
     }
 
     bool is_end(void) const noexcept
@@ -308,7 +319,7 @@ public:
 
     bool has_contents(void) const noexcept
     {
-        return AtomID::data == m_atom->identifier || AtomID::allocation == m_atom->identifier;
+        return AtomID::allocation == m_atom->identifier;
     }
 
     bool empty(void) const noexcept
@@ -321,6 +332,13 @@ public:
         assert( has_contents() );
 
         return m_atom->length - atom_header_length;
+    }
+
+    uint32_t contents_offset(void) const noexcept
+    {
+        assert( has_contents() );
+
+        return m_offset + atom_header_length;
     }
 
     byte_pointer contents(void) const noexcept
@@ -418,35 +436,35 @@ using ConstAtomIterator = detail::__AtomIterator<false>;
 //===------------------------------------------------------------------------===
 
 template <typename Type_>
-ConstAtomIterator data_iterator(const Type_* contents, uint32_t contents_length) noexcept(false)
+ConstAtomIterator resource_iterator(const Type_* contents, uint32_t contents_length) noexcept(false)
 {
     if ( !valid_alignment_and_length(contents, contents_length) ) {
         throw false;
     }
 
-    auto data = reinterpret_cast<const Atom*>(contents);
+    auto resource = reinterpret_cast<const Atom*>(contents);
 
-    if ( !valid_data(data, contents_length) ) {
+    if ( !valid_resource(resource) ) {
         throw false;
     }
 
-    return { data, 0 };
+    return { resource, 0 };
 }
 
 template <typename Type_>
-AtomIterator data_iterator(Type_* contents, uint32_t contents_length) noexcept(false)
+AtomIterator resource_iterator(Type_* contents, uint32_t contents_length) noexcept(false)
 {
     if ( !valid_alignment_and_length(contents, contents_length) ) {
         throw false;
     }
 
-    auto data = reinterpret_cast<Atom*>(contents);
+    auto resource = reinterpret_cast<Atom*>(contents);
 
-    if ( !valid_data(data, contents_length) ) {
+    if ( !valid_resource(resource) ) {
         throw false;
     }
 
-    return { data, 0 };
+    return { resource, 0 };
 }
 
 template <typename Type_>
@@ -489,20 +507,21 @@ AtomIterator end_iterator(Type_* contents, uint32_t contents_length) noexcept(fa
 //
 //===------------------------------------------------------------------------===
 
-AtomIterator prepare_layout( void* contents, uint32_t data_contents_size,
-                             uint32_t contents_length ) noexcept(false);
+AtomIterator prepare_resource( void* buffer, uint32_t buffer_length,
+                               uint32_t resource_offset = 0u ) noexcept(false);
 
-template <data::TrivialLayout Data_>
-AtomIterator prepare_layout( void* contents, uint32_t contents_length,
-                            const Data_& data ) noexcept(false) {
+template <TrivialLayout Data_>
+std::pair<Data_*,AtomIterator>
+prepare_resource_after(void* buffer, uint32_t buffer_length, const Data_& src_data) noexcept(false)
+{
+    auto rsrcIt = prepare_resource( buffer, buffer_length, data::aligned_size<Data_>() );
+    auto data   = static_cast<Data_*>(buffer);
 
-    auto dataIt = prepare_layout(contents, sizeof(Data_), contents_length);
+    *data = src_data;
 
-    *dataIt.template contents<Data_>() = data;
-
-    return dataIt;
+    return { data, rsrcIt };
 }
 
-#endif // !defined ( __METAL_VERSION__ )
-
 } // namespace data
+
+#endif // !defined ( __METAL_VERSION__ )

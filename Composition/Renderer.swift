@@ -84,10 +84,11 @@ class Renderer {
         }
 
         renderEncoder.setRenderPipelineState(renderPipelineState)
+        renderEncoder.setVertexBuffer(composition.compositionBuffer, offset: 0, index: 0)
 
-        renderEncoder.setVertexBuffer( composition.compositionBuffer,
-                                       offset: composition.compositionDataOffset,
-                                       index: 0 )
+        renderEncoder.setVertexBuffer( composition.resourceBuffer,
+                                       offset: composition.resourceOffset,
+                                       index: 1 )
 
         renderEncoder.drawPrimitives( type: .triangleStrip, vertexStart: 0, vertexCount: 4,
                                       instanceCount: composition.instanceCount )
