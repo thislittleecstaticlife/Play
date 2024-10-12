@@ -164,7 +164,11 @@ AtomIterator prepare_resource( void* buffer, uint32_t buffer_length,
         throw false;
     }
 
-    // • Data
+    // • Zero-init the leading data
+    //
+    std::memset(buffer, 0, resource_offset);
+
+    // • Resource
     //
     const auto resource_length = buffer_length - resource_offset;
     auto       resource_base   = static_cast<uint8_t*>(buffer) + resource_offset;

@@ -60,17 +60,29 @@
             auto [composition, rsrcIt] = data::prepare_resource_after(_compositionBuffer.contents,
                                                                       compositionBufferLength,
                                                                       CompositionData {
-                .grid_size = { 10, 10 },
+                .grid_size = { 40, 40 },
                 .regions   = { 0 }
             });
 
             auto regions = data::make_vector(composition->regions, rsrcIt);
-            auto region  = geometry::make_region({ 1, 1 }, { 8, 2 });
 
-            for (auto ii = 0; ii < 3; ++ii, region += simd::int2{ 0, 3 })
-            {
-                regions.push_back(region);
-            }
+            const auto outer_rgn   = geometry::make_region_of_size(composition->grid_size);
+            const auto content_rgn = geometry::inset(outer_rgn, 1);
+
+            const auto d0  = geometry::subdivide_from_left  (content_rgn,      10u, 1u);
+            const auto dl0 = geometry::subdivide_from_bottom(std::get<0>(d0),  11u, 1u);
+            const auto dl1 = geometry::subdivide_from_bottom(std::get<2>(dl0), 13u, 1u);
+            const auto dr0 = geometry::subdivide_from_bottom(std::get<2>(d0),  11u, 1u);
+            const auto dr1 = geometry::subdivide_from_right (std::get<0>(dr0),  4u, 1u);
+            const auto dr2 = geometry::subdivide_from_bottom(std::get<0>(dr1),  5u, 1u);
+
+            regions.push_back( std::get<0>(dl0) );
+            regions.push_back( std::get<0>(dl1) );
+            regions.push_back( std::get<2>(dl1) );
+            regions.push_back( std::get<2>(dr0) );
+            regions.push_back( std::get<2>(dr1) );
+            regions.push_back( std::get<0>(dr2) );
+            regions.push_back( std::get<2>(dr2) );
 
             // • Properties
             //

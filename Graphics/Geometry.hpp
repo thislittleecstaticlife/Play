@@ -113,7 +113,302 @@ inline Region& operator += (Region& rgn, simd::int2 offset)
 #endif
 
 //===------------------------------------------------------------------------===
-// Rectangle
+// • Initialization
+//===------------------------------------------------------------------------===
+
+constexpr Region make_region_of_size(simd::uint2 size)
+{
+    return {
+        .left   = 0u,
+        .top    = 0u,
+        .right  = size.x,
+        .bottom = size.y
+    };
+}
+
+constexpr Region make_region(simd::uint2 origin, simd::uint2 size)
+{
+    return {
+        .left   = origin.x,
+        .top    = origin.y,
+        .right  = origin.x + size.x,
+        .bottom = origin.y + size.y
+    };
+}
+
+//===------------------------------------------------------------------------===
+// • Region inset/expand
+//===------------------------------------------------------------------------===
+
+constexpr Region inset(const Region rgn, uint32_t horz, uint32_t vert)
+{
+    return {
+        .left   = rgn.left   + horz,
+        .top    = rgn.top    + vert,
+        .right  = rgn.right  - horz,
+        .bottom = rgn.bottom - vert
+    };
+}
+
+constexpr Region inset(const Region rgn, uint32_t common)
+{
+    return inset(rgn, common, common);
+}
+
+constexpr Region expand(const Region rgn, uint32_t horz, uint32_t vert)
+{
+    return {
+        .left   = rgn.left   - horz,
+        .top    = rgn.top    - vert,
+        .right  = rgn.right  + horz,
+        .bottom = rgn.bottom + vert
+    };
+}
+
+constexpr Region expand(const Region rgn, uint32_t common)
+{
+    return expand(rgn, common, common);
+}
+
+//===------------------------------------------------------------------------===
+// • Region division
+//===------------------------------------------------------------------------===
+
+#if !defined ( __METAL_VERSION__ )
+
+constexpr std::pair<Region,Region> subdivide_from_left(const Region rgn, uint32_t distance) noexcept
+{
+    const auto division = rgn.left + distance;
+
+    return {
+        {
+            .left   = rgn.left,
+            .top    = rgn.top,
+            .right  = division,
+            .bottom = rgn.bottom
+        },
+        {
+            .left   = division,
+            .top    = rgn.top,
+            .right  = rgn.right,
+            .bottom = rgn.bottom
+        }
+    };
+}
+
+constexpr std::pair<Region,Region> subdivide_from_top(const Region rgn, uint32_t distance) noexcept
+{
+    const auto division = rgn.top + distance;
+
+    return {
+        {
+            .left   = rgn.left,
+            .top    = rgn.top,
+            .right  = rgn.right,
+            .bottom = division
+        },
+        {
+            .left   = rgn.left,
+            .top    = division,
+            .right  = rgn.right,
+            .bottom = rgn.bottom
+        }
+    };
+}
+
+constexpr std::pair<Region,Region> subdivide_from_right(const Region rgn, uint32_t distance) noexcept
+{
+    const auto division = rgn.right - distance;
+
+    return {
+        {
+            .left   = division,
+            .top    = rgn.top,
+            .right  = rgn.right,
+            .bottom = rgn.bottom
+        },
+        {
+            .left   = rgn.left,
+            .top    = rgn.top,
+            .right  = division,
+            .bottom = rgn.bottom
+        }
+    };
+}
+
+constexpr std::pair<Region,Region> subdivide_from_bottom(const Region rgn, uint32_t distance) noexcept
+{
+    const auto division = rgn.bottom - distance;
+
+    return {
+        {
+            .left   = rgn.left,
+            .top    = division,
+            .right  = rgn.right,
+            .bottom = rgn.bottom
+        },
+        {
+            .left   = rgn.left,
+            .top    = rgn.top,
+            .right  = rgn.right,
+            .bottom = division
+        }
+    };
+}
+
+//===------------------------------------------------------------------------===
+// • Multiple subdivision
+//===------------------------------------------------------------------------===
+
+namespace detail {
+
+// • Left
+//
+template <std::same_as<Region>... T_, std::convertible_to<uint32_t>... Dists_>
+constexpr auto subdivide_from_left( const Region rgn, const std::tuple<T_...> subdivisions,
+                                    uint32_t distance ) noexcept
+{
+    const auto d = subdivide_from_left(rgn, distance);
+    const auto s2 = std::tuple_cat(subdivisions, d);
+
+    return s2;
+}
+
+template <std::same_as<Region>... T_, std::convertible_to<uint32_t>... Dists_>
+constexpr auto subdivide_from_left( const Region rgn, const std::tuple<T_...> subdivisions,
+                                    uint32_t distance0, Dists_... distances ) noexcept
+{
+    const auto d  = subdivide_from_left(rgn, distance0);
+    const auto s2 = std::tuple_cat(subdivisions, d.first);
+
+    return detail::subdivide_from_left(d.second, s2, distances...);
+}
+
+// • Top
+//
+template <std::same_as<Region>... T_, std::convertible_to<uint32_t>... Dists_>
+constexpr auto subdivide_from_top( const Region rgn, const std::tuple<T_...> subdivisions,
+                                   uint32_t distance ) noexcept
+{
+    const auto d = subdivide_from_top(rgn, distance);
+    const auto s2 = std::tuple_cat(subdivisions, d);
+
+    return s2;
+}
+
+template <std::same_as<Region>... T_, std::convertible_to<uint32_t>... Dists_>
+constexpr auto subdivide_from_top( const Region rgn, const std::tuple<T_...> subdivisions,
+                                   uint32_t distance0, Dists_... distances ) noexcept
+{
+    const auto d  = subdivide_from_top(rgn, distance0);
+    const auto s2 = std::tuple_cat(subdivisions, d.first);
+
+    return detail::subdivide_from_top(d.second, s2, distances...);
+}
+
+// • Right
+//
+template <std::same_as<Region>... T_, std::convertible_to<uint32_t>... Dists_>
+constexpr auto subdivide_from_right( const Region rgn, const std::tuple<T_...> subdivisions,
+                                     uint32_t distance ) noexcept
+{
+    const auto d = subdivide_from_right(rgn, distance);
+    const auto s2 = std::tuple_cat(subdivisions, d);
+
+    return s2;
+}
+
+template <std::same_as<Region>... T_, std::convertible_to<uint32_t>... Dists_>
+constexpr auto subdivide_from_right( const Region rgn, const std::tuple<T_...> subdivisions,
+                                     uint32_t distance0, Dists_... distances ) noexcept
+{
+    const auto d  = subdivide_from_right(rgn, distance0);
+    const auto s2 = std::tuple_cat(subdivisions, d.first);
+
+    return detail::subdivide_from_right(d.second, s2, distances...);
+}
+
+// • Bottom
+//
+template <std::same_as<Region>... T_, std::convertible_to<uint32_t>... Dists_>
+constexpr auto subdivide_from_bottom( const Region rgn, const std::tuple<T_...> subdivisions,
+                                      uint32_t distance ) noexcept
+{
+    const auto d = subdivide_from_bottom(rgn, distance);
+    const auto s2 = std::tuple_cat(subdivisions, d);
+
+    return s2;
+}
+
+template <std::same_as<Region>... T_, std::convertible_to<uint32_t>... Dists_>
+constexpr auto subdivide_from_bottom( const Region rgn, const std::tuple<T_...> subdivisions,
+                                      uint32_t distance0, Dists_... distances ) noexcept
+{
+    const auto d  = subdivide_from_bottom(rgn, distance0);
+    const auto s2 = std::tuple_cat(subdivisions, d.first);
+
+    return detail::subdivide_from_bottom(d.second, s2, distances...);
+}
+
+} // namespace detail
+
+// • Left
+//
+template <std::convertible_to<uint32_t>... Dists_>
+constexpr auto subdivide_from_left(const Region rgn, uint32_t distance0, Dists_... distances) noexcept
+{
+    const auto d = subdivide_from_left(rgn, distance0);
+    const auto s = std::make_tuple(d.first);
+
+    return detail::subdivide_from_left(d.second, s, distances...);
+}
+
+// • Top
+//
+template <std::convertible_to<uint32_t>... Dists_>
+constexpr auto subdivide_from_top(const Region rgn, uint32_t distance0, Dists_... distances) noexcept
+{
+    const auto d = subdivide_from_top(rgn, distance0);
+    const auto s = std::make_tuple(d.first);
+
+    return detail::subdivide_from_top(d.second, s, distances...);
+}
+
+// • Right
+//
+template <std::convertible_to<uint32_t>... Dists_>
+constexpr auto subdivide_from_right(const Region rgn, uint32_t distance0, Dists_... distances) noexcept
+{
+    const auto d = subdivide_from_right(rgn, distance0);
+    const auto s = std::make_tuple(d.first);
+
+    return detail::subdivide_from_right(d.second, s, distances...);
+}
+
+// • Bottom
+//
+template <std::convertible_to<uint32_t>... Dists_>
+constexpr auto subdivide_from_bottom(const Region rgn, uint32_t distance0, Dists_... distances) noexcept
+{
+    const auto d = subdivide_from_bottom(rgn, distance0);
+    const auto s = std::make_tuple(d.first);
+
+    return detail::subdivide_from_bottom(d.second, s, distances...);
+}
+
+#endif // !defined ( __METAL_VERSION__ )
+
+//===------------------------------------------------------------------------===
+// • simd type conversion
+//===------------------------------------------------------------------------===
+
+constexpr simd::float2 make_float2(simd::uint2 source)
+{
+    return { static_cast<float>(source.x), static_cast<float>(source.y) };
+}
+
+//===------------------------------------------------------------------------===
+// • Rectangle
 //===------------------------------------------------------------------------===
 
 struct Rectangle
@@ -179,7 +474,33 @@ constexpr bool operator == (const Rectangle lhs, const Rectangle rhs)
 }
 
 //===------------------------------------------------------------------------===
-// TextureRect
+// • Initialization
+//===------------------------------------------------------------------------===
+
+constexpr Rectangle make_rectangle_of_size(simd::float2 size)
+{
+    return { .left = 0.0f, .top = 0.0f, .right = size.x, .bottom = size.y };
+}
+
+constexpr Rectangle make_rectangle_of_size(simd::uint2 size)
+{
+    return make_rectangle_of_size( make_float2(size) );
+}
+
+constexpr Rectangle center_rectangle(const Rectangle rect, const Rectangle bounds)
+{
+    const auto origin = center(bounds) - 0.5f*size(rect);
+
+    return {
+        .left   = origin.x,
+        .top    = origin.y,
+        .right  = origin.x + width(rect),
+        .bottom = origin.y + height(rect)
+    };
+}
+
+//===------------------------------------------------------------------------===
+// • TextureRect
 //===------------------------------------------------------------------------===
 
 struct TextureRect
@@ -245,7 +566,7 @@ constexpr bool operator == (const TextureRect lhs, const TextureRect rhs)
 }
 
 //===------------------------------------------------------------------------===
-// DeviceRect
+// • DeviceRect
 //===------------------------------------------------------------------------===
 
 struct DeviceRect
@@ -308,71 +629,6 @@ constexpr bool operator == (const DeviceRect lhs, const DeviceRect rhs)
         && lhs.top    == rhs.top
         && lhs.right  == rhs.right
         && lhs.bottom == rhs.bottom;
-}
-
-//===------------------------------------------------------------------------===
-// • simd type conversion
-//===------------------------------------------------------------------------===
-
-constexpr simd::float2 make_float2(simd::uint2 source)
-{
-    return { static_cast<float>(source.x), static_cast<float>(source.y) };
-}
-
-//===------------------------------------------------------------------------===
-//
-// • Initialization
-//
-//===------------------------------------------------------------------------===
-
-//===------------------------------------------------------------------------===
-// • Region
-//===------------------------------------------------------------------------===
-
-constexpr Region make_region_of_size(simd::uint2 size)
-{
-    return {
-        .left   = 0u,
-        .top    = 0u,
-        .right  = size.x,
-        .bottom = size.y
-    };
-}
-
-constexpr Region make_region(simd::uint2 origin, simd::uint2 size)
-{
-    return {
-        .left   = origin.x,
-        .top    = origin.y,
-        .right  = origin.x + size.x,
-        .bottom = origin.y + size.y
-    };
-}
-
-//===------------------------------------------------------------------------===
-// • Rectangle
-//===------------------------------------------------------------------------===
-
-constexpr Rectangle make_rectangle_of_size(simd::float2 size)
-{
-    return { .left = 0.0f, .top = 0.0f, .right = size.x, .bottom = size.y };
-}
-
-constexpr Rectangle make_rectangle_of_size(simd::uint2 size)
-{
-    return make_rectangle_of_size( make_float2(size) );
-}
-
-constexpr Rectangle center_rectangle(const Rectangle rect, const Rectangle bounds)
-{
-    const auto origin = center(bounds) - 0.5f*size(rect);
-
-    return {
-        .left   = origin.x,
-        .top    = origin.y,
-        .right  = origin.x + width(rect),
-        .bottom = origin.y + height(rect)
-    };
 }
 
 //===------------------------------------------------------------------------===

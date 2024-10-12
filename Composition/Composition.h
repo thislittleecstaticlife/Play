@@ -38,8 +38,8 @@
 @property (nonnull, nonatomic, readonly) id<MTLBuffer> compositionBuffer;
 @property (nonnull, nonatomic, readonly) id<MTLBuffer> resourceBuffer;
 @property (nonatomic, readonly) NSInteger resourceOffset;
-
 @property (nonatomic, readonly) NSInteger instanceCount;
+
 @property (nonatomic, readonly) simd_uint2 aspectRatio;
 
 @end
