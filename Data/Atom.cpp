@@ -166,7 +166,10 @@ AtomIterator prepare_resource( void* buffer, uint32_t buffer_length,
 
     // • Zero-init the leading data
     //
-    std::memset(buffer, 0, resource_offset);
+    if ( 0 < resource_offset )
+    {
+        std::memset(buffer, 0, resource_offset);
+    }
 
     // • Resource
     //
@@ -184,7 +187,7 @@ AtomIterator prepare_resource( void* buffer, uint32_t buffer_length,
     // • End
     //
     auto end_offset = resource_length - atom_header_length;
-    auto end        = unchecked::offset_by(buffer, end_offset);
+    auto end        = unchecked::offset_by(resource_base, end_offset);
 
     if ( resource->length < end_offset )
     {
